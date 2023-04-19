@@ -636,8 +636,8 @@ Next, we can analyze the request packet structure. Our project supports 9 \emph{
 \begin{varwidth}{\linewidth}
 \begin{small}
 \begin{verbatim}
-                          Request
-                          -------
+                             Request
+                             =======
 Operation codes and their values:
 +----+-------------+---------+--------------+--------------------------+
 | op |   opcode    | payload |   expected   |       description        |
@@ -698,7 +698,7 @@ Second group's purpose is to alter the payload stored on the device. It is requi
 \caption{Key sequence format}
 \end{figure}
 
-Third group contains actions serves as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if there is available). There \verb|RESET_DEBUG_CURSOR| (0x08) request moves the cursor back to the beginning.
+Third group contains actions serves as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if there is available). Finally, the \verb|RESET_DEBUG_CURSOR| (0x08) request moves it back to the beginning.
 
 Last operation on the list is a \verb|RUN_SEQUENCES| (0x09). As the name suggests, this request will start executing the payload on the device. The only requirements here is that the device must be in \emph{read-only} mode.
 
@@ -710,7 +710,7 @@ Now, we can analyze the last two operation codes which we can see in \autoref{fi
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
                            Response
-                           --------
+                           ========
 
 +----+------+-------------+---------------------------+-----------+
 | op | name | payload_len |       description         |  payload  |
@@ -731,9 +731,21 @@ Let's end this section with a data flow diagram showcasing a possible communicat
 
 \chapter{Implementation of Rubber Ducky-like device}
 \label{implementation}
-% TODO:
+The purpose of this section is the familiarize the user with the actual structure of this project. The goal here is to show the reader how each part of the software is implemented. The design from \autoref{designAndArchitecture} will serves as our main source and all implemented parts of this project will be based on it. The first half of the chapter is dedicate to the Rubber Ducky software which I wrote using C programming language, and the second half deals with the Rubber Ducky script and client application for which I used Python.
 
+\section{Used third-party libraries}
+This project was developed using four open-source SDK and libraries:
+\begin{description}
+    \item [pico-sdk] The Raspberry Pi Pico SDK (henceforth the SDK) provides the headers, libraries and build system necessary to write programs for the RP2040-based devices such as the Raspberry Pi Pico in C, C++ or assembly language.\footnote{\url{https://github.com/raspberrypi/pico-sdk}}
+    \item [cyw43-driver] An open-source library which implements a driver for CYW43xx WiFi/BT SoC.\footnote{\url{https://github.com/georgerobotics/cyw43-driver}}
+    \item [TinyUSB] TinyUSB is an open-source cross-platform USB Host/Device stack for embedded system, designed to be memory-safe with no dynamic allocation and thread-safe with all interrupt events are deferred then handled in the non-ISR task function.\footnote{\url{https://github.com/hathach/tinyusb}}
+    \item [lwIP] lwIP library is a small independent implementation of the TCP/IP protocol suite. The focus of the lwIP TCP/IP implementation is to reduce the RAM usage while still having a full scale TCP.\footnote{\url{https://github.com/lwip-tcpip/lwip}}
+\end{description}
 
+\section{USB emulation}
+\section{TCP Server}
+\section{Script parser}
+\section{Client application}
 \chapter{Rubber Ducky test}
 \label{practicalTest}
 % TODO:
