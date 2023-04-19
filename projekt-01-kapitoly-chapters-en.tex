@@ -412,13 +412,14 @@ But Rubber Ducky does not have to be seen only as a malicious device. Its abilit
 \label{designAndArchitecture}
 In this section, we analyze the key features of this project. The goal here is to break down the whole problem into manageable parts, identify critical problems and come up with a solution. 
 
-Since our device is based on Hak5's Rubber Ducky it must support its main functionality. The device will have the ability to execute a series of keystrokes that are stored within the firmware of the device. The software will provide an easy way to create, generate, and upload these payloads. Together with a keyboard, the device will also include Mass Storage where the user can store a basic script or executable file that it can run on the host machine.
-% TODO: add use case diagram
+Since our device is based on Hak5's Rubber Ducky it must support its main functionality. The device will have the ability to execute a series of keystrokes that are stored within the firmware of the device. The software will provide an easy way to create, generate, and upload these payloads. Together with a keyboard, the device will also include Mass Storage where the user can store a shell basic script or executable file, which he/she can then run it on the host machine.
+\todo{add use case diagram}
 
 \section{Base device}
 When designing a device capable of a BadUSB attack the first thing to consider is which device we should develop. We wanted a board that is publicly accessible, inexpensive, and easy to work with. After searching the current market we came across \emph{Raspberry Pi Pico} which matches our criteria. \textbf{Raspberry Pi Pico} is a small board with an RP2040 microcontroller chip designed by \emph{Raspberry Pi Foundation}. Its purpose is to encourage people to learn programming and build hardware projects without having to spend lots of money on the hardware itself. We chose a newer version of \emph{Raspberry Pi Pico} model \emph{W} as it also comes with a built-in \emph{CYW43439} wireless chip that supports both Wi-Fi and Bluetooth. That enables us to add a new use case to our project. And with a well-documented SDK\footnote{SDK stands for Software Development Kit} and great support for third-party libraries, this board is a perfect choice for us.
 
 \section{Custom Rubber Ducky scripting language}
+\label{customLanguage}
 First, we need to think of a language which we will use to generate new payloads. The new language has to be intuitive and easy to write in. Since all the device can produce is keystrokes we need to find a to represent each key available on the keyboard. Luckily most (if not all) operating systems come with a keyboard driver preinstalled since it is a commonly used device. For this reason we don't need to write a driver for our keyboard emulator. \mbox{USB-IF} created a table with a list of supported keys and their IDs\footnote{The usage table can be found here: \url{https://usb.org/sites/default/files/hut1_4.pdf\#chapter.10}}. What that means is that we can build our language based on the IDs. That would be great for the machines as all they have to do is upload it directly to our Rubber Ducky device without any processing (apart from converting the ID values to bytes). But unfortunately, that doesn't meet our criteria for the language to be easy to write it. After all typing \verb|0c 11 17 18 0c 17 0c 19 08|\footnote{If you guessed \textbf{intuitive} then you are a master of ciphers.} feels more as to cipher a message than writing a payload.
 
 Another possible way is to map each ID to a key name. That will make it a lot more human-readable. The only thing left to do is to figure out a way to tell the device to group a set of keystrokes together. Without this feature we would not be capable of producing an upper case \verb|f| since it takes two keys to be pressed at the same time: \textbf{Shift} and \textbf{f} keys.
@@ -462,7 +463,7 @@ What I come up with is a language inspired by a VIM key notation\footnote{VIM (w
 
 There are two types of lexical tokens that the language accepts: \emph{printable keys} and \emph{special combinations}.
 
-\textbf{Printable keys} are a group of keys that can produce an ASCII printable character. % TODO: insert an ASCII table
+\textbf{Printable keys} are a group of keys that can produce an ASCII printable character. \todo{insert an ASCII table picture}
 In total, there are 95 printable characters in the ASCII table ranging from 32, representing a \emph{space} character, to 126, representing a \emph{tilde} character. However, there are only 48 keys that directly produce a printable character. The second half of the keys also require a \emph{shift} modifier (the exception being a spacebar key which doesn't have a shift counterpart). So a string \verb|Hello World!| will produce the following list of keys seen in \autoref{fig:list_of_keys}:
 
 \begin{figure}[ht]
@@ -541,9 +542,9 @@ Other additions to \emph{non-printable keys} are supports for \emph{modifier key
     \item left and right \verb|Meta| (also known as Windows, Hyper, Super, or Command key depending on the operating system),
     \item left and right \verb|Shift|.
 \end{itemize}
- We have already encountered a modifier key when discussing printable keys. When we press \verb|Shift| key together with \verb|Key_s| the \emph{shift} key changes the action of the \emph{s} key to output upper case \emph{S} instead of lowercase \emph{s} it would normally output. We can also associate modifier keys with keyboard shortcuts, the most famous one being \verb|alt+f3| to close an active window on Windows or \verb|ctrl+s| to save the content of a file. Modifier keys usually don't produce any action when pressed alone (Meta key notably being an exception) so they are handled differently when sending keystrokes to the host's machine. In the \emph{special combination} format modifier keys are placed before normal keys as seen in \autoref{fig:language_grammar_bnf}. Each modifier is identified by the location of the key followed by its starting letter \-- \verb|'la'| for \verb|LeftAlt|, \verb|'rs'| for \verb|RightShift|, and so on. If the user doesn't specify which one of the keys is meant, the left one will be chosen implicitly \-- \verb|'m'| will trigger \verb|LeftMeta|, \verb|'c'| will trigger \verb|LeftControl|, and so on. Each key is then separated with a \verb|-| separator.
+ We have already encountered a modifier key when discussing printable keys. When we press \verb|Shift| key together with \verb|Key_s| the \emph{shift} key changes the action of the \emph{s} key to output upper case \emph{S} instead of lowercase \emph{s} it would normally output. We can also associate modifier keys with keyboard shortcuts, the most famous one being \verb|alt+f4| to close an active window on Windows or \verb|ctrl+s| to save the content of a file. Modifier keys usually don't produce any action when pressed alone (Meta key notably being an exception) so they are handled differently when sending keystrokes to the host's machine. In the \emph{special combination} format modifier keys are placed before normal keys as seen in \autoref{fig:language_grammar_bnf}. Each modifier is identified by the location of the key followed by its starting letter \-- \verb|'la'| for \verb|LeftAlt|, \verb|'rs'| for \verb|RightShift|, and so on. If the user doesn't specify which one of the keys is meant, the left one will be chosen implicitly \-- \verb|'m'| will trigger \verb|LeftMeta|, \verb|'c'| will trigger \verb|LeftControl|, and so on. Each key is then separated with a \verb|-| separator.
 
-\textbf{Holding time}, as the name suggest, defines how long a group of keys are meant to be pressed before releasing measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0. 
+\textbf{Holding time}, as the name suggest, defines how long a group of keys are meant to be pressed before releasing, measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0. 
 
 Last thing the \emph{special combination} scope supports is to force multiple \emph{printable keys} to be pressed at the same time. That is especially useful when the user wants to execute a keyboard shortcut that consist of two or more normal keys. As an example we can use Visual Studio Code's\footnote{Visual Studio Code is a popular graphical text editor developed by Microsoft that supports extensions: \url{https://code.visualstudio.com/}} keyboard shortcut for closing all files in the editor: \verb|Ctrl+k Ctrl+w|. The language's equivalent of the given keystrokes is \verb|<c-kw>|. 
 
@@ -551,7 +552,7 @@ There are some letters that would not work in this format, \verb|<| and \verb|>|
 
 The last feature is of the language is an ability to write \emph{comments}. The comment grammar is inspired by scripting programming languages such as Bash or Python. It starts with \verb|#| symbol and characters what follows this symbol are all ignored by the parser until the end of line. There is no multi-line comments support. If the user want to type a \verb|#| symbol he/she needs to put it into the \emph{special combination} scope. 
 
-In the following \autoref{lst:example_payload} shows an example payload written showcasing all the grammar syntax of the language.
+The following \autoref{lst:example_payload} shows an example payload written showcasing all the grammar syntax of the language.
 \begin{lstlisting}[caption={Example payload in custom language.},
                    label={lst:example_payload}]
 # ============================================================
@@ -577,7 +578,7 @@ python -c "a = 2<\enter><#> a = 4<\enter>print(a <\lt> 3)"<\enter>
 
 # now lets find the oldest command run on the machine!
 # hopefully 10 seconds will be enough
-<10000-\arrow_up>
+<10000-\arrow_up><\enter>
 
 # that is the end of our Linux terminal scripting 101 tutorial
 # ============================================================
@@ -593,8 +594,140 @@ Since our development board supports WiFi we made a decision to create a communi
     \item Start the stored payload execution.
 \end{itemize}
 
-The server will have two types of responses: an \textbf{OK} response when the request is successfully processed and an \textbf{ERR} response with error message otherwise.
+The server, on the other hand, will have only two types of responses: an \textbf{OK} response which signalize that the request was successfully processed and an \textbf{ERR} response with an error message when the something unexpected happened while processing the request.
 
+What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with packet's content (payload data). 
+
+\begin{figure}[ht]
+\label{fig:communication_protocol_packet_format}
+\centering
+\begin{varwidth}{\linewidth}
+\begin{verbatim}
+                  Packet format
+                  =============
+
+      0           1           2           3      
++-----------+-----------+-----------+-----------+
+|  OP CODE  | RESERVED  |    PAYLOAD LENGTH     |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                PAYLOAD DATA                   |
+/                                               /
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+\end{verbatim}
+\end{varwidth}
+\caption{Communication protocol's packet format used in the project.} 
+\end{figure}
+
+The first being of the header contains an \textbf{operational code}. It tells the server what kind of action we are requesting as well as informing the client about the operation's result. All operational codes are analyzed later in this section. The second byte in the header is \textbf{reserved} due to structure padding in C programming language. \todo{reference to a book}
+Last two bytes in the header stores \textbf{the size of the payload data}. Two bytes here will give us values ranging from 0 to 65 535 which should be plenty enough to carry the payload.
+
+Next, we can analyze the request packet structure. Our project supports 9 \emph{operational codes} as shown in \autoref{fig:communication_protocol_request}. We can divide them into 4 groups:
+
+\begin{enumerate}
+    \item work with USB device's (server's) inner read-write mode,
+    \item update device payload,
+    \item analyze the payload stored on the device,
+    \item run the payload.
+\end{enumerate}
+
+\begin{figure}[ht]
+\label{fig:communication_protocol_request}
+\centering
+\begin{varwidth}{\linewidth}
+\begin{small}
+\begin{verbatim}
+                          Request
+                          -------
+Operation codes and their values:
++----+-------------+---------+--------------+--------------------------+
+| op |   opcode    | payload |   expected   |       description        |
+|    |    name     |  size   |     value    |                          |
++----+-------------+---------+--------------+--------------------------+
+| 01 |     SET     |   01    |    00/01     |   Enable/disable device  |
+|    |  EDITABLE   |         |              |      read-write mode     |
++----+-------------+---------+--------------+--------------------------+
+| 02 |     GET     |   00    |      --      |      Check device's      |
+|    |  EDITABLE   |         |              |  read-write mode status  |
++----+-------------+---------+--------------+--------------------------+
+| 03 | CLEAR DATA  |   00    |      --      |      Clear device's      | *
+|    |             |         |              |     current payload      |
++----+-------------+---------+--------------+--------------------------+
+| 04 |  PUSH DATA  |   0d    | key sequence | Send a new key sequence  | *
++----+-------------+---------+--------------+--------------------------+
+| 05 |  POP DATA   |   00    |      --      | Remove last key sequence | *
++----+-------------+---------+--------------+--------------------------+
+| 06 |  GET DEBUG  |   00    |      --      | Retrieve a key sequence  |
+|    |   CURSOR    |         |              |       at the debug       |
+|    |             |         |              |     cursor's position    |
++----+-------------+---------+--------------+--------------------------+
+| 07 | INC DEBUG   |   00    |      --      | Move debug cursor to the |
+|    |   CURSOR    |         |              |    next key sequence     |
++----+-------------+---------+--------------+--------------------------+
+| 08 | RESET DEBUG |   00    |      --      |   Reset debug cursor's   |
+|    |   CURSOR    |         |              |         position         |
++----+-------------+---------+--------------+--------------------------+
+| 09 |     RUN     |   00    |      --      | Tell the device to start | **
+|    |  SEQUENCES  |         |              |  executing the payload   |
++----+-------------+---------+--------------+--------------------------+
+
+*  - device must be set to read-write mode to run this command
+** - device must be set to read-only mode to run this command
+\end{verbatim}
+\end{small}
+\end{varwidth}
+\caption{Set of request's operational codes, their payload and description.} 
+\end{figure}
+
+First two operational codes fall under the first group. Their purpose is to change or check whether the device is currently in read-write mode. There are other action that are depend on it. \verb|SET_EDITABLE| (0x01) sends a single-byte payload of 0x00, which will set device to \emph{read-only} mode, or 0x01, which will switch the device to \emph{read-write} mode. \verb|GET_EDITABLE| (0x02) retrieves current mode present on the device.
+
+Second group's purpose is to alter the payload stored on the device. It is required for the device's to be in \emph{read-write} mode. Otherwise the device will response with an error message and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\verb|MDFR|), a reserved byte, 6 keyboard key ID's (see \autoref{customLanguage}), and a \verb|LAST| byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. User can retrieve it from the server response payload.
+
+\begin{figure}[ht]
+\label{fig:key_sequence_format}
+\centering
+\begin{varwidth}{\linewidth}
+\begin{verbatim}
+    0     1      2      3      4      5      6      7   
++------+------+------+------+------+------+------+------+
+|            DELAY          | MDFR | RESV | KEY1 | KEY2 |
++------+------+------+------+------+------+------+------+
+| KEY3 | KEY4 | KEY5 | KEY6 | LAST |
++------+------+------+------+------+
+\end{verbatim}
+\end{varwidth}
+\caption{Key sequence format}
+\end{figure}
+
+Third group contains actions serves as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if there is available). There \verb|RESET_DEBUG_CURSOR| (0x08) request moves the cursor back to the beginning.
+
+Last operation on the list is a \verb|RUN_SEQUENCES| (0x09). As the name suggests, this request will start executing the payload on the device. The only requirements here is that the device must be in \emph{read-only} mode.
+
+Now, we can analyze the last two operation codes which we can see in \autoref{fig:communication_protocol_response}. They are used by the server as a form of a response to the requests. \verb|OK| response is generated when the request is successfully generated. It can carry some data depending on the received request (for example \emph{key sequence} data as an answer to \verb|POP_DATA|, or device mode when received \verb|GET_EDITABLE|). The other type of response is \verb|ERR| which is generated when an error occurred during the request processing. This response will always carry the error message in its payload.
+
+\begin{figure}[ht]
+\label{fig:communication_protocol_response}
+\centering
+\begin{varwidth}{\linewidth}
+\begin{verbatim}
+                           Response
+                           --------
+
++----+------+-------------+---------------------------+-----------+
+| op | name | payload_len |       description         |  payload  |
++----+------+-------------+---------------------------+-----------+
+| 0a | OK   |   varies    | Request was successfully  | data from |
+|    |      |             |         processed         |   server  |
++----+------+-------------+---------------------------+-----------+
+| 0b | ERR  |   varies    | Request was not correctly |   error   |
+|    |      |             |         processed         |  message  |
++----+------+-------------+---------------------------+-----------+
+\end{verbatim}
+\end{varwidth}
+\caption{Set of responses, their content and description.}
+\end{figure}
+
+Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{}: 
+\todo{PIKCHAAAAAAA HEEEER}
 
 \chapter{Implementation of Rubber Ducky-like device}
 \label{implementation}
