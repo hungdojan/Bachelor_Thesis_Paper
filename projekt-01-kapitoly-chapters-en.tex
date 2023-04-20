@@ -1,4 +1,5 @@
 \chapter{Introduction}
+
 % TODO:
 \chapter{Universal Serial Bus}
 \label{usb}
@@ -544,13 +545,13 @@ Other additions to \emph{non-printable keys} are supports for \emph{modifier key
 \end{itemize}
  We have already encountered a modifier key when discussing printable keys. When we press \verb|Shift| key together with \verb|Key_s| the \emph{shift} key changes the action of the \emph{s} key to output upper case \emph{S} instead of lowercase \emph{s} it would normally output. We can also associate modifier keys with keyboard shortcuts, the most famous one being \verb|alt+f4| to close an active window on Windows or \verb|ctrl+s| to save the content of a file. Modifier keys usually don't produce any action when pressed alone (Meta key notably being an exception) so they are handled differently when sending keystrokes to the host's machine. In the \emph{special combination} format modifier keys are placed before normal keys as seen in \autoref{fig:language_grammar_bnf}. Each modifier is identified by the location of the key followed by its starting letter \-- \verb|'la'| for \verb|LeftAlt|, \verb|'rs'| for \verb|RightShift|, and so on. If the user doesn't specify which one of the keys is meant, the left one will be chosen implicitly \-- \verb|'m'| will trigger \verb|LeftMeta|, \verb|'c'| will trigger \verb|LeftControl|, and so on. Each key is then separated with a \verb|-| separator.
 
-\textbf{Holding time}, as the name suggest, defines how long a group of keys are meant to be pressed before releasing, measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0. 
+\textbf{Holding time}, as the name suggests, defines how long a group of keys is meant to be pressed before releasing, measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0. 
 
-Last thing the \emph{special combination} scope supports is to force multiple \emph{printable keys} to be pressed at the same time. That is especially useful when the user wants to execute a keyboard shortcut that consist of two or more normal keys. As an example we can use Visual Studio Code's\footnote{Visual Studio Code is a popular graphical text editor developed by Microsoft that supports extensions: \url{https://code.visualstudio.com/}} keyboard shortcut for closing all files in the editor: \verb|Ctrl+k Ctrl+w|. The language's equivalent of the given keystrokes is \verb|<c-kw>|. 
+The last thing the \emph{special combination} scope supports is to force multiple \emph{printable keys} to be pressed at the same time. That is especially useful when the user wants to execute a keyboard shortcut that consists of two or more normal keys. As an example, we can use Visual Studio Code's\footnote{Visual Studio Code is a popular graphical text editor developed by Microsoft that supports extensions: \url{https://code.visualstudio.com/}} keyboard shortcut for closing all files in the editor: \verb|Ctrl+k Ctrl+w|. The language's equivalent of the given keystrokes is \verb|<c-kw>|. 
 
-There are some letters that would not work in this format, \verb|<| and \verb|>| being the case. For that I created a group of \emph{macro keys}. A \textbf{Macro key} is an alias to an existing key. It can be an alias to either normal key or modifier key, and is treated the same way as a \emph{non-printable key} \-- it starts with an escape backslash character follow by the name of the macro. So we can use \verb|<\gt>| and \verb|<\lt>| in to produce \verb|<| and \verb|>| respectively. 
+There are some letters that would not work in this format, \verb|<| and \verb|>| being the case. For that, I created a group of \emph{macro keys}. A \textbf{Macro key} is an alias to an existing key. It can be an alias to either the normal key or modifier key and is treated the same way as a \emph{non-printable key} \-- it starts with an escape backslash character followed by the name of the macro. So we can use \verb|<\gt>| and \verb|<\lt>| in to produce \verb|<| and \verb|>| respectively. 
 
-The last feature is of the language is an ability to write \emph{comments}. The comment grammar is inspired by scripting programming languages such as Bash or Python. It starts with \verb|#| symbol and characters what follows this symbol are all ignored by the parser until the end of line. There is no multi-line comments support. If the user want to type a \verb|#| symbol he/she needs to put it into the \emph{special combination} scope. 
+The last feature of the language is the ability to write \emph{comments}. The comment grammar is inspired by scripting programming languages such as Bash or Python. It starts with \verb|#| symbol and the characters that follows this symbol are all ignored by the parser until the end of the line. There are no multi-line comments support. If the user wants to type a \verb|#| symbol he/she needs to put it into the \emph{special combination} scope. 
 
 The following \autoref{lst:example_payload} shows an example payload written showcasing all the grammar syntax of the language.
 \begin{lstlisting}[caption={Example payload in custom language.},
@@ -585,18 +586,18 @@ python -c "a = 2<\enter><#> a = 4<\enter>print(a <\lt> 3)"<\enter>
 \end{lstlisting}
 
 \section{Communication protocol}
-Since our development board supports WiFi we made a decision to create a communication protocol and a network application based on it. Let our Rubber Ducky device be \emph{server} and our network application be \emph{client}. We need to define use cases for each sides. This is a list of requests that we want client to support:
+Since our development board supports WiFi we made a decision to create a communication protocol and a network application based on it. Let our Rubber Ducky device be \emph{server} and our network application be \emph{client}. We need to define use cases for each side. This is a list of requests that we want the client to support:
 \begin{itemize}
-    \item Notify the device (server) that the client will send new payload.
+    \item Notify the device (server) that the client will send a new payload.
     \item Send to the device a new series of keystrokes.
     \item Remove the last sent set of keystrokes.
     \item Retrieve keystrokes from the device.
     \item Start the stored payload execution.
 \end{itemize}
 
-The server, on the other hand, will have only two types of responses: an \textbf{OK} response which signalize that the request was successfully processed and an \textbf{ERR} response with an error message when the something unexpected happened while processing the request.
+The server, on the other hand, will have only two types of responses: an \textbf{OK} response which signalizes that the request was successfully processed and an \textbf{ERR} response with an error message when something unexpected happened while processing the request.
 
-What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with packet's content (payload data). 
+What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with the packet's content (payload data). 
 
 \begin{figure}[ht]
 \label{fig:communication_protocol_packet_format}
@@ -618,13 +619,13 @@ What we came up with is a communication protocol on L7 application layer\footnot
 \caption{Communication protocol's packet format used in the project.} 
 \end{figure}
 
-The first being of the header contains an \textbf{operational code}. It tells the server what kind of action we are requesting as well as informing the client about the operation's result. All operational codes are analyzed later in this section. The second byte in the header is \textbf{reserved} due to structure padding in C programming language. \todo{reference to a book}
-Last two bytes in the header stores \textbf{the size of the payload data}. Two bytes here will give us values ranging from 0 to 65 535 which should be plenty enough to carry the payload.
+The first being of the header contains an \textbf{operational code}. It tells the server what kind of action we are requesting as well as informs the client about the operation's result. All operational codes are analyzed later in this section. The second byte in the header is \textbf{reserved} due to structure padding in C programming language. \todo{reference to a book}
+Last two bytes in the header store \textbf{the size of the payload data}. Two bytes here will give us values ranging from 0 to 65 535 which should be plenty enough to carry the payload.
 
 Next, we can analyze the request packet structure. Our project supports 9 \emph{operational codes} as shown in \autoref{fig:communication_protocol_request}. We can divide them into 4 groups:
 
 \begin{enumerate}
-    \item work with USB device's (server's) inner read-write mode,
+    \item work with the USB device's (server's) inner read-write mode,
     \item update device payload,
     \item analyze the payload stored on the device,
     \item run the payload.
@@ -675,12 +676,12 @@ Operation codes and their values:
 \end{verbatim}
 \end{small}
 \end{varwidth}
-\caption{Set of request's operational codes, their payload and description.} 
+\caption{Set of request's operational codes, their payload, and description.} 
 \end{figure}
 
-First two operational codes fall under the first group. Their purpose is to change or check whether the device is currently in read-write mode. There are other action that are depend on it. \verb|SET_EDITABLE| (0x01) sends a single-byte payload of 0x00, which will set device to \emph{read-only} mode, or 0x01, which will switch the device to \emph{read-write} mode. \verb|GET_EDITABLE| (0x02) retrieves current mode present on the device.
+The first two operational codes fall under the first group. Their purpose is to change or check whether the device is currently in read-write mode. There are other actions that depend on it. \verb|SET_EDITABLE| (0x01) sends a single-byte payload of 0x00, which will set device to \emph{read-only} mode, or 0x01, which will switch the device to \emph{read-write} mode. \verb|GET_EDITABLE| (0x02) retrieves the current mode present on the device.
 
-Second group's purpose is to alter the payload stored on the device. It is required for the device's to be in \emph{read-write} mode. Otherwise the device will response with an error message and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\verb|MDFR|), a reserved byte, 6 keyboard key ID's (see \autoref{customLanguage}), and a \verb|LAST| byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. User can retrieve it from the server response payload.
+The second group's purpose is to alter the payload stored on the device. It is required for the device to be in \emph{read-write} mode. Otherwise, the device will respond with an error message and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\texttt{MDFR}), a reserved byte, 6 keyboards key IDs (see \autoref{customLanguage}), and a \texttt{LAST} byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. Users can retrieve it from the server response payload.
 
 \begin{figure}[ht]
 \label{fig:key_sequence_format}
@@ -698,11 +699,11 @@ Second group's purpose is to alter the payload stored on the device. It is requi
 \caption{Key sequence format}
 \end{figure}
 
-Third group contains actions serves as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if there is available). Finally, the \verb|RESET_DEBUG_CURSOR| (0x08) request moves it back to the beginning.
+The third group contains actions that serve as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if it is available). Finally, the \verb|RESET_DEBUG_CURSOR| (0x08) request moves it back to the beginning.
 
-Last operation on the list is a \verb|RUN_SEQUENCES| (0x09). As the name suggests, this request will start executing the payload on the device. The only requirements here is that the device must be in \emph{read-only} mode.
+The last operation on the list is a \verb|RUN_SEQUENCES| (0x09). As the name suggests, this request will start executing the payload on the device. The only requirement here is that the device must be in \emph{read-only} mode.
 
-Now, we can analyze the last two operation codes which we can see in \autoref{fig:communication_protocol_response}. They are used by the server as a form of a response to the requests. \verb|OK| response is generated when the request is successfully generated. It can carry some data depending on the received request (for example \emph{key sequence} data as an answer to \verb|POP_DATA|, or device mode when received \verb|GET_EDITABLE|). The other type of response is \verb|ERR| which is generated when an error occurred during the request processing. This response will always carry the error message in its payload.
+Now, we can analyze the last two operation codes which we can see in \autoref{fig:communication_protocol_response}. They are used by the server as a form of response to requests. \verb|OK| response is generated when the request is successfully generated. It can carry some data depending on the received request (for example \emph{key sequence} data as an answer to \verb|POP_DATA|, or device mode when received \verb|GET_EDITABLE|). The other type of response is \verb|ERR| which is generated when an error occurred during the request processing. This response will always carry the error message in its payload.
 
 \begin{figure}[ht]
 \label{fig:communication_protocol_response}
@@ -723,26 +724,35 @@ Now, we can analyze the last two operation codes which we can see in \autoref{fi
 +----+------+-------------+---------------------------+-----------+
 \end{verbatim}
 \end{varwidth}
-\caption{Set of responses, their content and description.}
+\caption{Set of responses, their content, and description.}
 \end{figure}
 
-Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{}: 
-\todo{PIKCHAAAAAAA HEEEER}
+Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{fig:dataflow_example}: 
+
+\begin{figure}
+    \centering
+    \includegraphics{obrazky-figures/dataflow.pdf}
+    \caption{Example of the communication between the client and the server. In this example, the user sends two key sequences to the device: \texttt{<\textbackslash{}enter><DELAY 500>}. We can also see the user making a mistake at the beginning of the communication by sending a \texttt{CLEAR\_DATA} request when the device is still in \emph{read-only mode}.}
+    \label{fig:dataflow_example}
+\end{figure}
 
 \chapter{Implementation of Rubber Ducky-like device}
 \label{implementation}
-The purpose of this section is the familiarize the user with the actual structure of this project. The goal here is to show the reader how each part of the software is implemented. The design from \autoref{designAndArchitecture} will serves as our main source and all implemented parts of this project will be based on it. The first half of the chapter is dedicate to the Rubber Ducky software which I wrote using C programming language, and the second half deals with the Rubber Ducky script and client application for which I used Python.
+The purpose of this section is the familiarize the user with the actual structure of this project. The goal here is to show the reader how each part of the software is implemented. The design from \autoref{designAndArchitecture} will serve as our main source and all implemented parts of this project will be based on it. The first half of the chapter is dedicated to the Rubber Ducky software which I wrote using C programming language, and the second half deals with the Rubber Ducky script and client application for which I used Python.
 
 \section{Used third-party libraries}
-This project was developed using four open-source SDK and libraries:
+This project was developed using four open-source an SDK and libraries:
 \begin{description}
-    \item [pico-sdk] The Raspberry Pi Pico SDK (henceforth the SDK) provides the headers, libraries and build system necessary to write programs for the RP2040-based devices such as the Raspberry Pi Pico in C, C++ or assembly language.\footnote{\url{https://github.com/raspberrypi/pico-sdk}}
+    \item [pico-sdk] The Raspberry Pi Pico SDK (henceforth the SDK) provides the headers, libraries and build system necessary to write programs for the RP2040-based devices such as the Raspberry Pi Pico in C, C++, or assembly language.\footnote{\url{https://github.com/raspberrypi/pico-sdk}}
     \item [cyw43-driver] An open-source library which implements a driver for CYW43xx WiFi/BT SoC.\footnote{\url{https://github.com/georgerobotics/cyw43-driver}}
-    \item [TinyUSB] TinyUSB is an open-source cross-platform USB Host/Device stack for embedded system, designed to be memory-safe with no dynamic allocation and thread-safe with all interrupt events are deferred then handled in the non-ISR task function.\footnote{\url{https://github.com/hathach/tinyusb}}
-    \item [lwIP] lwIP library is a small independent implementation of the TCP/IP protocol suite. The focus of the lwIP TCP/IP implementation is to reduce the RAM usage while still having a full scale TCP.\footnote{\url{https://github.com/lwip-tcpip/lwip}}
+    \item [TinyUSB] TinyUSB is an open-source cross-platform USB Host/Device stack for embedded systems, designed to be memory-safe with no dynamic allocation and thread-safe with all interrupt events deferred and then handled in the non-ISR task function.\footnote{\url{https://github.com/hathach/tinyusb}}
+    \item [lwIP] lwIP library is a small independent implementation of the TCP/IP protocol suite. The focus of the lwIP TCP/IP implementation is to reduce the RAM usage while still having a full-scale TCP.\footnote{\url{https://github.com/lwip-tcpip/lwip}}
 \end{description}
 
-\section{USB emulation}
+\section{Rubber Ducky device}
+The Rubber Ducky device implementation can be divided into two parts. In the first part, we need to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
+
+
 \section{TCP Server}
 \section{Script parser}
 \section{Client application}
@@ -752,16 +762,13 @@ This project was developed using four open-source SDK and libraries:
 
 \chapter{Attack payloads}
 \label{attackPayloads}
+This section 
 % TODO:
 
-\chapter{Defense and Results}
+\chapter{Defense and Testing}
 \label{defense}
 % TODO:
 
 \chapter{Conclusion}
 \label{conclusion}
-% TODO:
-
-\chapter{Attachment}
-\label{attachment}
 % TODO:
