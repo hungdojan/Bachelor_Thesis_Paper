@@ -417,7 +417,7 @@ Since our device is based on Hak5's Rubber Ducky it must support its main functi
 \todo{add use case diagram}
 
 \section{Base device}
-When designing a device capable of a BadUSB attack the first thing to consider is which device we should develop. We wanted a board that is publicly accessible, inexpensive, and easy to work with. After searching the current market we came across \emph{Raspberry Pi Pico} which matches our criteria. \textbf{Raspberry Pi Pico} is a small board with an RP2040 microcontroller chip designed by \emph{Raspberry Pi Foundation}. Its purpose is to encourage people to learn programming and build hardware projects without having to spend lots of money on the hardware itself. We chose a newer version of \emph{Raspberry Pi Pico} model \emph{W} as it also comes with a built-in \emph{CYW43439} wireless chip that supports both Wi-Fi and Bluetooth. That enables us to add a new use case to our project. And with a well-documented SDK\footnote{SDK stands for Software Development Kit} and great support for third-party libraries, this board is a perfect choice for us.
+When designing a device capable of a BadUSB attack the first thing to consider is which device we should develop. We wanted a board that is publicly accessible, inexpensive, and easy to work with. After searching the current market we came across \emph{Raspberry Pi Pico} which matches our criteria. \textbf{Raspberry Pi Pico} is a small board with an RP2040 microcontroller chip designed by \emph{Raspberry Pi Foundation}. Its purpose is to encourage people to learn programming and build hardware projects without having to spend lots of money on the hardware itself. We chose a newer version of \emph{Raspberry Pi Pico} model \emph{W} as it also comes with a built-in \emph{CYW43439} wireless chip that supports both Wi-Fi and Bluetooth. That enables us to add a new use case to our project. And with a well-documented SDK\footnote{SDK stands for Software Development Kit} and great support for third-party libraries, this board is a perfect choice for us. \todo{add image of Raspberry Pi Pico W}
 
 \section{Custom Rubber Ducky scripting language}
 \label{customLanguage}
@@ -586,6 +586,7 @@ python -c "a = 2<\enter><#> a = 4<\enter>print(a <\lt> 3)"<\enter>
 \end{lstlisting}
 
 \section{Communication protocol}
+\label{communicationProtocol}
 Since our development board supports WiFi we made a decision to create a communication protocol and a network application based on it. Let our Rubber Ducky device be \emph{server} and our network application be \emph{client}. We need to define use cases for each side. This is a list of requests that we want the client to support:
 \begin{itemize}
     \item Notify the device (server) that the client will send a new payload.
@@ -738,7 +739,9 @@ Let's end this section with a data flow diagram showcasing a possible communicat
 
 \chapter{Implementation of Rubber Ducky-like device}
 \label{implementation}
-The purpose of this section is the familiarize the user with the actual structure of this project. The goal here is to show the reader how each part of the software is implemented. The design from \autoref{designAndArchitecture} will serve as our main source and all implemented parts of this project will be based on it. The first half of the chapter is dedicated to the Rubber Ducky software which I wrote using C programming language, and the second half deals with the Rubber Ducky script and client application for which I used Python.
+The purpose of this section is the familiarize the user with the actual structure of this project. The goal here is to show the reader how each part of the software is implemented. The design from \autoref{designAndArchitecture} will serve as our main source and all implemented parts of this project will be based on it.
+
+The first half of the chapter is dedicated to the Rubber Ducky software which I wrote using C programming language and all the source codes are present in \verb|rubber_ducky| directory, and the second half of the chapter deals with the Rubber Ducky scripting language and the client application for which I used Python and the code is located in \verb|rd_client| directory.
 
 \section{Used third-party libraries}
 This project was developed using four open-source an SDK and libraries:
@@ -750,13 +753,116 @@ This project was developed using four open-source an SDK and libraries:
 \end{description}
 
 \section{Rubber Ducky device}
-The Rubber Ducky device implementation can be divided into two parts. In the first part, we need to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
+\todo{UML diagram here}
+\subsection{USB configuration}
+In the first part, I needed to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
 
+Next, I had to configure the Raspberry Pi Pico board to behave like a keyboard and mass storage simultaneously. As previously mentioned in \autoref{usb}, the host identifies the USB device's identify by retreiving its descriptor and configurations. TinyUSB defines 3 callback functions for that:
+\begin{enumerate}
+    \item \verb|tud_descriptor_device_cb| -- A callback function which the host uses to retrieve \emph{device descriptor}.
+    \item \verb|tud_descriptor_configuration_cb| -- A callback function which the host uses to retrieve every \emph{configuration descriptors} present on the device. It also includes \emph{interface descriptors}, \emph{device class descriptors} (if exists), and \emph{endpoint descriptors}.
+    \item \verb|tud_descriptor_string_cb| -- A callback function which the host uses to retrieve \emph{string descriptors} based on the index.
+\end{enumerate}
+
+\verb|usb_descriptors.c| defines all three callback functions. I created instances of descriptors with the structures provided by the library and wrote each callback function's logic to return a pointer to those instances (see an example in \autoref{lst:descriptor_cb}).
+
+\begin{lstlisting}[caption={Definition of the \emph{device descriptor} and its callback function used in \texttt{usb\_descriptors.c}.},
+                   label={lst:descriptor_cb},
+                   language=c]
+// device descriptor
+tusb_desc_device_t const desc_device = {
+    .bLength            = sizeof(tusb_desc_device_t),
+    .bDescriptorType    = TUSB_DESC_DEVICE,     // DEVICE constant
+    .bcdUSB             = 0x0110,   // USB1.1
+    .bDeviceClass       = 0x00,
+    .bDeviceSubClass    = 0x00,
+    .bDeviceProtocol    = 0x00,
+    .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
+
+    // list of vendors found here: http://www.linux-usb.org/usb.ids
+    .idVendor           = 0xD0D0,   // vendor's id (must be unique)
+    .idProduct          = 0xCAFE,   // product id (must be unique with vendor)
+    .bcdDevice          = 0x0100,   // version
+
+    .iManufacturer      = 0x01,     // string index of manufacture name
+    .iProduct           = 0x02,     // string index of product name
+    .iSerialNumber      = 0x00,
+
+    .bNumConfigurations = 0x01      // number of configuration the device supports
+};
+
+// ...
+
+uint8_t const * tud_descriptor_device_cb() {
+    return (uint8_t const *) &desc_device;
+}
+\end{lstlisting}
+
+\subsection{The keyboard}
+Since a keyboard is categorized as a \emph{human interface device} I had to define its report structure. That is defined in \verb|usb_reports.c| file. A keyboard report consists of three parts:
+\begin{enumerate}
+    \item a modifier bitmap, which is sent to the host,
+    \item an LED bitmap, which is received from the host,
+    \item and up to 6 keycodes, which are sent to the host.
+\end{enumerate}
+I created a huge byte array named \verb|hid_report|, which I loaded with the report byte codes. Then I defined required HID callback functions. To ease myself during the testing of the device I added a debugging feature. If the user turn the Caps Lock LED on and off, the device will start executing the payload once again. The logic here is very simple and can be seen in \autoref{lst:usb_debug}. In order for this to work, the user needs to set a \verb|DEBUG_CAPS_LOCK| macro to 1 in the \verb|config.h| header file.
+
+\todo{new code here}
+\begin{lstlisting}[caption={A snippet of code which implements the payload re-execution.},
+                   label={lst:usb_debug},
+                   language=c]
+void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
+        hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize) {
+    // ignore this request
+    (void) instance;
+    (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) bufsize;
+#if DEBUG_CAPS_LOCK
+    if (buffer == NULL || bufsize <= 0)
+        return;
+    if (report_type != HID_REPORT_TYPE_OUTPUT)
+        return;
+
+    // reset key sequence when caps lock is turned off
+    if (!(buffer[0] & KEYBOARD_LED_CAPSLOCK)) {
+        key_seqv_reset_index_counter(false);
+        if (!get_enable_key_seqv()) {
+            set_enable_key_seqv(true);
+        }
+    }
+#endif
+}
+\end{lstlisting}
+
+\subsection{The mass storage}
+Mass storage configuration is located, suprisingly, in \verb|msc.c| file. TinyUSB library requires 6 callback functions to be defined in order for the mass storage device to run:
+\begin{itemize}
+    \item \verb|tud_msc_read10_cb| -- Returns a content of a memory sector given an address of the sector.
+    \item \verb|tud_msc_write10_cb| -- Updates a content of a memory sector given an address of the sector.
+    \item \verb|tud_msc_inquiry_cb| -- Returns Vendor ID, Product ID and Product revision number of the device.
+    \item \verb|tud_msc_test_unit_ready_cb| -- Returns true allowing the host to read and write on the device.
+    \item \verb|tud_msc_capacity_cb| -- Determines a disk size.
+    \item \verb|tud_msc_scsi_cb| -- Defines the logic of other SCSI commands.
+\end{itemize}
+Unfortunately, due to Raspberry Pi Pico's lack of on board nonvolatile memory, I had to write a static file system from scratch. I chose a FAT12\todo{reference} file system since it is one of the simplest file system out there and for the proof of concept a sufficient one.
+
+\textbf{FAT12} \todo{finish}.
+
+\subsection{The payload}
+% TODO:
 
 \section{TCP Server}
+% TODO:
+
 \section{Script parser}
+% TODO:
+
 \section{Client application}
-\chapter{Rubber Ducky test}
+% TODO:
+
+\chapter{Rubber Ducky testing}
 \label{practicalTest}
 % TODO:
 
