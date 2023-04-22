@@ -75,6 +75,8 @@
 \usepackage{listings}
 \usepackage{longtable}
 \usepackage{varwidth}
+\usepackage[ruled]{algorithm2e}
+\usepackage[center]{caption}
 
 % =======================================================================
 % balíček "hyperref" vytváří klikací odkazy v pdf, pokud tedy použijeme pdflatex
@@ -250,7 +252,6 @@ Uvedl jsem všechny literární prameny, publikace a další zdroje, ze kterých
   % ...
   %\subfile{chapters/projekt-05-conclusion}
 
-\nocite{USBComplete}
   % Pouzita literatura / Bibliography
   % ----------------------------------------------
 \ifslovak
@@ -295,7 +296,7 @@ Uvedl jsem všechny literární prameny, publikace a další zdroje, ze kterých
   \renewcommand{\appendixtocname}{Prílohy}
   \renewcommand{\appendixname}{Príloha}
 \fi
-%  \appendixpage
+  % \appendixpage
 
 % vynechani stranky v oboustrannem rezimu
 % Skip the page in the two-sided mode

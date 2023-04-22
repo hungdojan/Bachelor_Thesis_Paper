@@ -421,14 +421,13 @@ When designing a device capable of a BadUSB attack the first thing to consider i
 
 \section{Custom Rubber Ducky scripting language}
 \label{customLanguage}
-First, we need to think of a language which we will use to generate new payloads. The new language has to be intuitive and easy to write in. Since all the device can produce is keystrokes we need to find a to represent each key available on the keyboard. Luckily most (if not all) operating systems come with a keyboard driver preinstalled since it is a commonly used device. For this reason we don't need to write a driver for our keyboard emulator. \mbox{USB-IF} created a table with a list of supported keys and their IDs\footnote{The usage table can be found here: \url{https://usb.org/sites/default/files/hut1_4.pdf\#chapter.10}}. What that means is that we can build our language based on the IDs. That would be great for the machines as all they have to do is upload it directly to our Rubber Ducky device without any processing (apart from converting the ID values to bytes). But unfortunately, that doesn't meet our criteria for the language to be easy to write it. After all typing \verb|0c 11 17 18 0c 17 0c 19 08|\footnote{If you guessed \textbf{intuitive} then you are a master of ciphers.} feels more as to cipher a message than writing a payload.
+First, we need to think of a language that we will use to generate new payloads. The new language has to be intuitive and easy to write in. Since all the device can produce is keystrokes we need to find a to represent each key available on the keyboard. Luckily most (if not all) operating systems come with a keyboard driver preinstalled since it is a commonly used device. For this reason, we don't need to write a driver for our keyboard emulator. \mbox{USB-IF} created a table with a list of supported keys and their IDs\footnote{The usage table can be found here: \url{https://usb.org/sites/default/files/hut1_4.pdf\#chapter.10}}. What that means is that we can build our language based on the IDs. That would be great for the machines as all they have to do is upload it directly to our Rubber Ducky device without any processing (apart from converting the ID values to bytes). But unfortunately, that doesn't meet our criteria for the language to be easy to write it. After all typing \verb|0c 11 17 18 0c 17 0c 19 08|\footnote{If you guessed \textbf{intuitive} then you are a master of ciphers.} feels more as to cipher a message than writing a payload.
 
 Another possible way is to map each ID to a key name. That will make it a lot more human-readable. The only thing left to do is to figure out a way to tell the device to group a set of keystrokes together. Without this feature we would not be capable of producing an upper case \verb|f| since it takes two keys to be pressed at the same time: \textbf{Shift} and \textbf{f} keys.
 
 What I come up with is a language inspired by a VIM key notation\footnote{VIM (which is an acronym to Vi IMproved) is a free open-source text editor. It is known among programmers as a text editor filled with keyboard shortcuts which makes coding and writing much faster and more efficient. Unfortunately, VIM has a steep learning curve making it not beginner-friendly. The official documentation for VIM key notation can be found here: \url{https://vimdoc.sourceforge.net/htmldoc/intro.html\#key-notation}}. The grammar of the language can be represented with a BNF notation seen in \autoref{fig:language_grammar_bnf}.
 
 \begin{figure}[ht]
-\label{fig:language_grammar_bnf}
 \begin{verbatim}
 <RD-SCRIPT>           ::= <COMMENT><RD-SCRIPT>   |
                           <DELAY><RD-SCRIPT>     |
@@ -460,6 +459,7 @@ What I come up with is a language inspired by a VIM key notation\footnote{VIM (w
 <PRINTABLE>           ::= ASCII printable character
 \end{verbatim}
 \caption{Language grammar in BNF notation} 
+\label{fig:language_grammar_bnf}
 \end{figure}
 
 There are two types of lexical tokens that the language accepts: \emph{printable keys} and \emph{special combinations}.
@@ -468,7 +468,6 @@ There are two types of lexical tokens that the language accepts: \emph{printable
 In total, there are 95 printable characters in the ASCII table ranging from 32, representing a \emph{space} character, to 126, representing a \emph{tilde} character. However, there are only 48 keys that directly produce a printable character. The second half of the keys also require a \emph{shift} modifier (the exception being a spacebar key which doesn't have a shift counterpart). So a string \verb|Hello World!| will produce the following list of keys seen in \autoref{fig:list_of_keys}:
 
 \begin{figure}[ht]
-\label{fig:list_of_keys}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
@@ -477,6 +476,7 @@ shift+key_w, key_o, key_r, key_l, key_d, shift+key_1
 \end{verbatim}
 \end{varwidth}
 \caption{\emph{Hello world!} converted to key presses.}
+\label{fig:list_of_keys}
 \end{figure}
 
 One note here: due to the wide variety of different keyboard layouts the official key mapping is only compatible with the \emph{US layout}. What that means is that if the target's machine uses a different keyboard layout than the \emph{US layout} some keys or key combinations will produce a different string than expected. So for example with our machine's keyboard layout set to the Czech QWERTZ, the following set of keystrokes will produce output that the user probably didn't want:
@@ -515,18 +515,17 @@ There are four features that the user can define within the scope:
 \textbf{Waiting time} or \textbf{delay} tells the device how long it has to wait before sending the next series of keystrokes to the host. This is very important, without it the payloads would fail most of the time since the device usually needs to wait until a GUI element loads or a file is downloaded. The format of a delay command looks as followed: \verb|<DELAY [delay_in_ms]>|. An example of the usage of the delay command can be seen in \autoref{fig:delay_example}.
 
 \begin{figure}[ht]
-\label{fig:delay_example}
 \centering
 \begin{varwidth}{\linewidth}
 \verb|take <DELAY 5000> dave brubeck|
 \end{varwidth}
 \caption{In this example the USB device will type "take " string, wait 5 seconds, and finish by typing the string " dave brubeck".}
+\label{fig:delay_example}
 \end{figure}
 
 \textbf{Non-printable keys} are, as the name suggests, keys that don't produce any printable characters \-- in other words all other keys. Of course, there are some notable exceptions. Even though \verb|Keypad_1| or \verb|Keypad_Asterisk| keys all produce a printable character (\verb|'1', '*'| respectively), they are not considered printable keys and to access them the user has to explicitly put them in the \emph{special combination} format in order to execute them. To differentiate non-printable keys from printable keys to former is written together with a \verb|\| prefix. Examples of non-printable keys can be seen in \autoref{fig:non_printable_example}. The parser doesn't distinguish between uppercase and lowercase letters (case-insensitive).
 
 \begin{figure}[ht]
-\label{fig:non_printable_example}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
@@ -534,6 +533,7 @@ There are four features that the user can define within the scope:
 \end{verbatim}
 \end{varwidth}
 \caption{Examples of non-printable key presses in custom Rubber Ducky script language.}
+\label{fig:non_printable_example}
 \end{figure}
 
 Other additions to \emph{non-printable keys} are supports for \emph{modifier keys} and \emph{holding time}. \textbf{Modifier keys} are special keys that temporarily alter the action of a normal key (printable or non-printable key) when pressed together. There are in total 8 modifier keys:
@@ -601,7 +601,6 @@ The server, on the other hand, will have only two types of responses: an \textbf
 What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with the packet's content (payload data). 
 
 \begin{figure}[ht]
-\label{fig:communication_protocol_packet_format}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
@@ -618,6 +617,7 @@ What we came up with is a communication protocol on L7 application layer\footnot
 \end{verbatim}
 \end{varwidth}
 \caption{Communication protocol's packet format used in the project.} 
+\label{fig:communication_protocol_packet_format}
 \end{figure}
 
 The first being of the header contains an \textbf{operational code}. It tells the server what kind of action we are requesting as well as informs the client about the operation's result. All operational codes are analyzed later in this section. The second byte in the header is \textbf{reserved} due to structure padding in C programming language. \todo{reference to a book}
@@ -633,7 +633,6 @@ Next, we can analyze the request packet structure. Our project supports 9 \emph{
 \end{enumerate}
 
 \begin{figure}[ht]
-\label{fig:communication_protocol_request}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{small}
@@ -678,6 +677,7 @@ Operation codes and their values:
 \end{small}
 \end{varwidth}
 \caption{Set of request's operational codes, their payload, and description.} 
+\label{fig:communication_protocol_request}
 \end{figure}
 
 The first two operational codes fall under the first group. Their purpose is to change or check whether the device is currently in read-write mode. There are other actions that depend on it. \verb|SET_EDITABLE| (0x01) sends a single-byte payload of 0x00, which will set device to \emph{read-only} mode, or 0x01, which will switch the device to \emph{read-write} mode. \verb|GET_EDITABLE| (0x02) retrieves the current mode present on the device.
@@ -685,7 +685,6 @@ The first two operational codes fall under the first group. Their purpose is to 
 The second group's purpose is to alter the payload stored on the device. It is required for the device to be in \emph{read-write} mode. Otherwise, the device will respond with an error message and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\texttt{MDFR}), a reserved byte, 6 keyboards key IDs (see \autoref{customLanguage}), and a \texttt{LAST} byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. Users can retrieve it from the server response payload.
 
 \begin{figure}[ht]
-\label{fig:key_sequence_format}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
@@ -698,6 +697,7 @@ The second group's purpose is to alter the payload stored on the device. It is r
 \end{verbatim}
 \end{varwidth}
 \caption{Key sequence format}
+\label{fig:key_sequence_format}
 \end{figure}
 
 The third group contains actions that serve as a debug tool for the user. The debug cursor always starts at the beginning of the series. A request with \verb|GET_DEBUG_CURSOR| (0x06) will retrieve a \emph{key sequence} which is currently under the cursor. To get the next key sequence the user needs to send a \verb|INC_DEBUG_CURSOR| (0x07) which moves the cursor to the next one (if it is available). Finally, the \verb|RESET_DEBUG_CURSOR| (0x08) request moves it back to the beginning.
@@ -707,7 +707,6 @@ The last operation on the list is a \verb|RUN_SEQUENCES| (0x09). As the name sug
 Now, we can analyze the last two operation codes which we can see in \autoref{fig:communication_protocol_response}. They are used by the server as a form of response to requests. \verb|OK| response is generated when the request is successfully generated. It can carry some data depending on the received request (for example \emph{key sequence} data as an answer to \verb|POP_DATA|, or device mode when received \verb|GET_EDITABLE|). The other type of response is \verb|ERR| which is generated when an error occurred during the request processing. This response will always carry the error message in its payload.
 
 \begin{figure}[ht]
-\label{fig:communication_protocol_response}
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
@@ -726,6 +725,7 @@ Now, we can analyze the last two operation codes which we can see in \autoref{fi
 \end{verbatim}
 \end{varwidth}
 \caption{Set of responses, their content, and description.}
+\label{fig:communication_protocol_response}
 \end{figure}
 
 Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{fig:dataflow_example}: 
@@ -757,7 +757,7 @@ This project was developed using four open-source an SDK and libraries:
 \subsection{USB configuration}
 In the first part, I needed to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
 
-Next, I had to configure the Raspberry Pi Pico board to behave like a keyboard and mass storage simultaneously. As previously mentioned in \autoref{usb}, the host identifies the USB device's identify by retreiving its descriptor and configurations. TinyUSB defines 3 callback functions for that:
+Next, I had to configure the Raspberry Pi Pico board to behave like a keyboard and mass storage simultaneously. As previously mentioned in \autoref{usb}, the host identifies the USB device's identity by retrieving its descriptor and configurations. TinyUSB defines 3 callback functions for that:
 \begin{enumerate}
     \item \verb|tud_descriptor_device_cb| -- A callback function which the host uses to retrieve \emph{device descriptor}.
     \item \verb|tud_descriptor_configuration_cb| -- A callback function which the host uses to retrieve every \emph{configuration descriptors} present on the device. It also includes \emph{interface descriptors}, \emph{device class descriptors} (if exists), and \emph{endpoint descriptors}.
@@ -788,7 +788,7 @@ tusb_desc_device_t const desc_device = {
     .iProduct           = 0x02,     // string index of product name
     .iSerialNumber      = 0x00,
 
-    .bNumConfigurations = 0x01      // number of configuration the device supports
+    .bNumConfigurations = 0x01 // number of configuration
 };
 
 // ...
@@ -805,14 +805,15 @@ Since a keyboard is categorized as a \emph{human interface device} I had to defi
     \item an LED bitmap, which is received from the host,
     \item and up to 6 keycodes, which are sent to the host.
 \end{enumerate}
-I created a huge byte array named \verb|hid_report|, which I loaded with the report byte codes. Then I defined required HID callback functions. To ease myself during the testing of the device I added a debugging feature. If the user turn the Caps Lock LED on and off, the device will start executing the payload once again. The logic here is very simple and can be seen in \autoref{lst:usb_debug}. In order for this to work, the user needs to set a \verb|DEBUG_CAPS_LOCK| macro to 1 in the \verb|config.h| header file.
+I created a huge byte array named \verb|hid_report|, which I loaded with the report byte codes. Then I defined the required HID callback functions. To ease myself during the testing of the device I added a debugging feature. If the user turns the Caps Lock LED on and off, the device will start executing the payload once again. The logic here is very simple and can be seen in \autoref{lst:usb_debug}. In order for this to work, the user needs to set a \verb|DEBUG_CAPS_LOCK| macro to 1 in the \verb|config.h| header file.
 
 \todo{new code here}
 \begin{lstlisting}[caption={A snippet of code which implements the payload re-execution.},
                    label={lst:usb_debug},
                    language=c]
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
-        hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize) {
+                           hid_report_type_t report_type,
+                           uint8_t const* buffer, uint16_t bufsize) {
     // ignore this request
     (void) instance;
     (void) report_id;
@@ -837,30 +838,123 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
 \end{lstlisting}
 
 \subsection{The mass storage}
-Mass storage configuration is located, suprisingly, in \verb|msc.c| file. TinyUSB library requires 6 callback functions to be defined in order for the mass storage device to run:
+Mass storage configuration is located, surprisingly, in \verb|msc.c| file. TinyUSB library requires 6 callback functions to be defined in order for the mass storage device to run:
 \begin{itemize}
     \item \verb|tud_msc_read10_cb| -- Returns a content of a memory sector given an address of the sector.
     \item \verb|tud_msc_write10_cb| -- Updates a content of a memory sector given an address of the sector.
-    \item \verb|tud_msc_inquiry_cb| -- Returns Vendor ID, Product ID and Product revision number of the device.
+    \item \verb|tud_msc_inquiry_cb| -- Returns Vendor ID, Product ID, and Product revision number of the device.
     \item \verb|tud_msc_test_unit_ready_cb| -- Returns true allowing the host to read and write on the device.
     \item \verb|tud_msc_capacity_cb| -- Determines a disk size.
     \item \verb|tud_msc_scsi_cb| -- Defines the logic of other SCSI commands.
 \end{itemize}
-Unfortunately, due to Raspberry Pi Pico's lack of on board nonvolatile memory, I had to write a static file system from scratch. I chose a FAT12\todo{reference} file system since it is one of the simplest file system out there and for the proof of concept a sufficient one.
-
-\textbf{FAT12} \todo{finish}.
+Unfortunately, due to Raspberry Pi Pico's lack of onboard nonvolatile memory, I had to write a static file system from scratch. I chose a \textbf{FAT12} file system since it is one of the simplest file systems out there and for the proof of concept a sufficient one. The whole content of the file system is stored in the \verb|memory_disk| array which emulates a physical disk. It is represented as a two-dimensional array with the first dimension emulating an array of \emph{sectors} and the second dimension being the \emph{sector}\footnote{A sector is an elementary storage unit. It is the smallest number of bytes that the host can retrieve from the disk.} itself. The first sector contains a \textbf{boot table}, the second one is a \textbf{FAT table}, the third one is a \textbf{root directory}, and the rest of the disk is filled with file contents. Each part of the file system is described in \cite{fatFS}. \todo{diagram??}
 
 \subsection{The payload}
-% TODO:
+\label{thePayload}
+The payload and its API are managed in \verb|keyseqv| directory. The structural layout can be seen in \todo{UML diagram}. Each key sequence structure contains a \textbf{delay} that will be applied after sending the report to the host, the \textbf{report} with key presses itself, and a \textbf{last item} flag which tells the device to not send any report after this one. The whole payload is then stored in \verb|key_seqvs| array and defined in \verb|key_seqv_script.c| source file. This file can be generated by \verb|rd_client| script. 
 
-\section{TCP Server}
-% TODO:
+Lastly, the \verb|key_seqv.c| source file defines all the functions that operate directly with the \verb|key_seqv_t| structure. That includes functions that update the payload content through the server's API (more in the next section) and those that are used for executing the payload. The two most important functions here are named \verb|key_seqv_increase_counter| \linebreak which moves the cursor index to the next item (key sequence) in the array, and \linebreak\verb|key_seqv_get_report| which retrieves the current report from the array.
+
+Putting these last two functions together we can see the pseudocode of the core algorithm of executing the payload in \autoref{alg:payload_exec} shown below:
+
+\begin{algorithm}
+\caption{Payload execution algorithm}
+\label{alg:payload_exec}
+\KwIn{\texttt{cursor}, \texttt{key\_seqvs}}
+\BlankLine
+device initialization\;
+\While{true}{
+    process USB device tasks\;
+    retrieve an \texttt{item} from \texttt{key\_seqvs} at \texttt{cursor}'s position\;
+    \eIf{execution not enabled or \texttt{item} is empty}{
+        \texttt{delay} = 0\;
+        \texttt{report} = empty report\;
+        send a \texttt{report} to host\;
+    }{
+        \texttt{delay} = \texttt{item}.delay\;
+        \texttt{report} = \texttt{item}.report\;
+        send a \texttt{report} to host\;
+        \If{\texttt{report} sent successfully}{
+            increase the \texttt{cursor} position in \texttt{key\_seqvs}\;
+            wait \texttt{delay} before executing next key sequence\;
+        }
+    }
+}
+\end{algorithm}
+
+\section{WiFi Access Point and TCP Server}
+To run a server we need 2 things: a port and an IP address of the server. But first, the Raspberry Pi Pico device needs to be connected to the network. There are two ways to achieve this: the device can either connect to the local WiFi once it is powered up, or it can create an access point and let the client connect to its WiFi network. I chose to implement the latter one. The advantage of having the device being an access point is that I know the IP address of the server \--- it is the IP address of the network's gateway. The disadvantage is that I need to implement a DHCP server\footnote{DHCP (Dynamic Host Configuration Protocol) is a network management protocol used to dynamically assign an IP address to any device, or node, on a network so it can communicate using IP (source: \url{https://www.techtarget.com/searchnetworking/definition/DHCP})} in order to have a functional network.
+
+In order for the device to act as an access point the user needs to set \verb|WIFI_ENABLE| macro, network's SSID (or simply a name), and password, all in \verb|config.h| header file. Once done, Raspberry's software will call \verb|cyw43_arch_enable_ap_mode| during the initialization phase.
+
+After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory\todo{uml}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and they will be communicating in the isolated private network.
+
+\begin{center}
+    \lstset{
+        caption={A basic network configuration used in the project. In this case, the IP address of the network is \textbf{192.168.4.0/30}.},
+        label={lst:dhcp_config},
+        language=c,
+    }
+    \begin{lstlisting}
+int main() {
+    // ...
+    
+    // define network's IP range
+    struct network_data_t nd;
+    IP4_ADDR(ip_2_ip4(&(nd.gateway)), 192, 168, 4, 1);
+    IP4_ADDR(ip_2_ip4(&(nd.mask)), 255, 255, 255, 252);
+
+    dhcp_server_t dhcp_server;
+    dhcp_server_init(&dhcp_server, &(nd.gateway), &(nd.mask));
+
+    // ...
+}
+    \end{lstlisting}
+\end{center}
+
+There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The dataflow diagram \todo{diagram} below shows what the whole process from receiving the request to sending a response looks like. 
 
 \section{Script parser}
-% TODO:
+This section describes how the parser of the language, defined in \autoref{customLanguage}, works. Both lexical and syntax analysis of the input is done using regular expression. I use groups in the regex pattern (as seen in \autoref{fig:regex}) to extract data from the input string.
+\begin{figure}[ht]
+\centering
+\begin{varwidth}{\linewidth}
+\footnotesize
+\verb=(<DELAY (\d+)>)|(<((?:(\d+)-)?((?:[a-zA-Z]{1,2}-)*)(\\)?([^<>\s]+))>)|(#.*)|([ -~])=
+\end{varwidth}
+\caption{Language's regex pattern.}
+\label{fig:regex}
+\end{figure}
+The data are then passed to the \verb|parse_line| function where they are normalized and added to \verb|lof_keyseqvs| list for later processing. The parsing algorithm can be seen in \autoref{alg:parsing}.
+\begin{algorithm}
+\caption{Processing the input}
+\label{alg:parsing}
+\SetKwComment{Comment}{// }
+\texttt{key sequence} = empty key sequence\;
+\For{\texttt{line} in \texttt{input}}{
+    check \texttt{line} string and extract all \texttt{groups}\;
+    \For{\texttt{group} in \texttt{groups}}{
+        \If{\texttt{key sequence} is full}{
+            add \texttt{key sequence} to \texttt{lof\_keyseqvs}\;
+            initialize empty \texttt{key sequence}\;
+        }
+        fill data from \texttt{group} to \texttt{key sequence}\;  
+    }
+    \Comment{store the last pending key sequence if exists}
+    \If{\texttt{key sequence} is not empty}{
+        add \texttt{key sequence} to \texttt{lof\_keyseqvs}\;
+    }
+    set last \texttt{key sequence} item in \texttt{lof\_keyseqvs} to last\;
+}
+\end{algorithm}
+
+The elementary key sequence is stored in the \verb|KeySeqv| class \todo{finish this one}. \todo{uml diagram}.
 
 \section{Client application}
 % TODO:
+
+\section{Summary}
+The diagram below \todo{add diagram} summarizes how the Rubber Ducky and client application work.
 
 \chapter{Rubber Ducky testing}
 \label{practicalTest}
