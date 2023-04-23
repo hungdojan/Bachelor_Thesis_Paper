@@ -887,7 +887,7 @@ To run a server we need 2 things: a port and an IP address of the server. But fi
 
 In order for the device to act as an access point the user needs to set \verb|WIFI_ENABLE| macro, network's SSID (or simply a name), and password, all in \verb|config.h| header file. Once done, Raspberry's software will call \verb|cyw43_arch_enable_ap_mode| during the initialization phase.
 
-After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory\todo{uml}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and they will be communicating in the isolated private network.
+After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory\todo{uml}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and that will be happening in the isolated private network.
 
 \begin{center}
     \lstset{
@@ -915,7 +915,7 @@ int main() {
 There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The dataflow diagram \todo{diagram} below shows what the whole process from receiving the request to sending a response looks like. 
 
 \section{Script parser}
-This section describes how the parser of the language, defined in \autoref{customLanguage}, works. Both lexical and syntax analysis of the input is done using regular expression. I use groups in the regex pattern (as seen in \autoref{fig:regex}) to extract data from the input string.
+This section describes how the parser of the language, defined in \autoref{customLanguage}, works. Both lexical and syntax analysis of the input is done using regular expression in \verb|KeySeqvParser| class. I use groups in the regex pattern (as seen in \autoref{fig:regex}) to extract data from the input string.
 \begin{figure}[ht]
 \centering
 \begin{varwidth}{\linewidth}
@@ -925,7 +925,7 @@ This section describes how the parser of the language, defined in \autoref{custo
 \caption{Language's regex pattern.}
 \label{fig:regex}
 \end{figure}
-The data are then passed to the \verb|parse_line| function where they are normalized and added to \verb|lof_keyseqvs| list for later processing. The parsing algorithm can be seen in \autoref{alg:parsing}.
+First, the program cycles through the lines from the input file or \verb|STDIN|. Each line's content is then passed to the \verb|parse_line| function where it is normalized and added to \verb|lof_keyseqvs| list for later processing. The parsing algorithm can be seen in \autoref{alg:parsing}.
 \begin{algorithm}
 \caption{Processing the input}
 \label{alg:parsing}
