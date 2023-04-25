@@ -1,25 +1,31 @@
 \chapter{Introduction}
+Universal Serial Bus (USB) is the most widely-used connector for modern computer systems. It allows various devices to connect to the computer. The USB has replaced many older interfaces, such as parallel and serial ports, and has become the standard for connecting devices such as keyboards, mice, printers, and storage devices to computers. The main selling point of the USB interface was the introduction of "plug-and-play" feature which removes the needs of the users to configure the device. Upon connecting the device to the computer, the system automatically recognizes the device and immediately assigns appropriate drivers.
 
-% TODO:
+Unfortunately as the popularity of the interface rose, new types of malicious attacks against USB started to appear. In 2014, a group of researchers from Security Research Labs announced a new type of USB malware called BadUSB. They demoed a USB device with a patched firmware could spoof keyboard, network card and even a display. And this type of malware is undetectable be the conventional antivirus programs.
+
+The main focus of this work is to design and implement this type of device on the Raspberry Pi Pico board and analyze what the final product is capable of. There are multiple defense mechanisms that has been created since the introduction of the malware. So I tested my device on some of them to see how it held against some of them.
+
+The aim of this thesis is to warn \todo{to warn people that this malware exists by making it cheap and for automation and stuff}.
+
 \chapter{Universal Serial Bus}
 \label{usb}
-Universal Serial Bus (also known as USB) is a peripheral interface used to connect external devices to computers. It defines the specifications of cables, sets of protocols, the speed of data exchange, and the way the host and device communicate with each other. Not only that, but it can also send power to devices (for example to charge smartphones). 
+Universal Serial Bus (also known as USB) is a peripheral interface used to connect external devices to computers. It defines the specifications of cables, sets of protocols, the speed of data exchange, and the way the host and device communicate with each other. Not only that, but it can also send power to devices (for example to charge smartphones).
 
-Before the invention of the USB peripheral, there exists countless kinds of ports in any shape and size. In the past, every peripheral has its shaped connector, a protocol through which it communicated with the computer, and a limited number of devices it can run at once. And that brings many disadvantages. 
+Before the invention of the USB peripheral, there exists countless kinds of ports in any shape and size. In the past, every peripheral has its shaped connector, a protocol through which it communicated with the computer, and a limited number of devices it can run at once. And that brings many disadvantages.
 
 First of all computer manufacturers had to decide which sets of ports to include in the final motherboard. We can usually find ports like PS/2 for connecting keyboards and mouses, or VGA connectors for connecting monitors on the old machines. But what if the user wanted to connect a device (for example a scanner or a printer), whose port simply wasn't included with the machine? They usually had to go out and purchase dedicated cards and then manually install them. That is something a person without computer experience might have struggled with. And as for developers during the development of new computer accessories, they had to decide whether to use one of the existing interfaces but run into a risk of being stuck with its original protocols that don't provide enough features the developer needs or design a new interface which is very expensive.
 
 That led to the development of a new interface. In 1995 a group named \textbf{USB Implementers Forum} (also known as USB-IF) was formed by these seven companies: Compaq, DEC, IBM, Intel, Microsoft, NEC, and Nortel. They aimed to create an interface with these goals in their mind:
 \begin{itemize}
-    \item \textbf{Easy to use} \--- The user doesn't need to configure and set up a device. 
-    \item \textbf{Fast} \--- To minimize the delay in communication between the host and device and to be able to transfer 
+    \item \textbf{Easy to use} \--- The user doesn't need to configure and set up a device.
+    \item \textbf{Fast} \--- To minimize the delay in communication between the host and device and to be able to transfer
     \item \textbf{Reliable} \--- To minimize the occurrence of errors and automatic error handling.
     \item \textbf{Versatile} \--- Many kinds of peripherals can use the interface.
-    \item \textbf{Inexpensive} \--- So that the price of a final product can be as low as possible. 
+    \item \textbf{Inexpensive} \--- So that the price of a final product can be as low as possible.
     \item \textbf{Supported by all operating systems} \--- It helps developers to write the drivers for the peripherals.
 \end{itemize}
 
-A year later, USB-IF released the first version of the USB interface called \textbf{USB 1.0}. The new interface allowed a user to connect a variety of peripherals, such as printers, keyboards, mobile devices, and much more, using a single, standardized interface socket. It also lets the user connect and disconnect a peripheral whenever needed without needing to shut down a computer. And at last, a feature called "plug-and-play" was introduced. It shows the simplicity of the USB \--- the user simply plugs the device into the computer and can immediately use it. 
+A year later, USB-IF released the first version of the USB interface called \textbf{USB 1.0}. The new interface allowed a user to connect a variety of peripherals, such as printers, keyboards, mobile devices, and much more, using a single, standardized interface socket. It also lets the user connect and disconnect a peripheral whenever needed without needing to shut down a computer. And at last, a feature called "plug-and-play" was introduced. It shows the simplicity of the USB \--- the user simply plugs the device into the computer and can immediately use it.
 
 But it wasn't until the introduction of \textbf{USB 1.1} in 1998 that the interface started to be widely used. In that year the operating system Windows 98 was shipped together with support for USB. Version 1.1 also introduced two speeds: Low Speed with 1.5 Mbps and Full Speed with 12 Mbps.
 
@@ -27,12 +33,12 @@ Over the next 20 years, USB has been constantly upgraded. In April 2000 \textbf{
 
 Nowadays almost every device is equipped with some form of USB either for charging or data transfer. From smartphones and game consoles to microcontrollers and soldering iron. And there are currently 14 different types of USB connectors (some of them are shown in \autoref{fig:usb_connectors}, Type-C being the latest one introduced in December 2013.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics{obrazky-figures/USB_2.0_and_3.0_connectors.png}
-    \caption{List of mostly used USB connectors per generation}
-    \label{fig:usb_connectors}
-\end{figure}
+% \begin{figure}[ht]
+%     \centering
+%     \includegraphics{obrazky-figures/USB_2.0_and_3.0_connectors.png}
+%     \caption{List of mostly used USB connectors per generation}
+%     \label{fig:usb_connectors}
+% \end{figure}
 
 \subsection*{Communication between Host and Device}
 \label{communication}
@@ -45,7 +51,7 @@ The standard USB interface has four signal lines and two of those are used to ca
     \label{fig:usb_pins}
 \end{figure}
 
-Before a transfer between the host and devices starts they have to establish some sort of communication canal. In USB terminology that means to establish a \textbf{pipe}. The pipe connects the host with the device's endpoint. \textbf{Endpoint} is an allocated block of memory or a register on the controller's chip where received data or data waiting to be sent are stored. The host doesn't have an endpoint since it initiates and finishes the transmission. The connection is initiated during the \textbf{enumeration} -- an initial sequence of data exchange between the host and device. 
+Before a transfer between the host and devices starts they have to establish some sort of communication canal. In USB terminology that means to establish a \textbf{pipe}. The pipe connects the host with the device's endpoint. \textbf{Endpoint} is an allocated block of memory or a register on the controller's chip where received data or data waiting to be sent are stored. The host doesn't have an endpoint since it initiates and finishes the transmission. The connection is initiated during the \textbf{enumeration} -- an initial sequence of data exchange between the host and device.
 
 \begin{figure}[ht]
     \centering
@@ -87,8 +93,8 @@ Every device has Endpoint 0 configured for control transfer. It is used by the h
 
 There are four types of transfers: Control, Bulk, Interrupt, and Isochronous. Each device can use different types depending on the need. \textbf{Control transfers} enable the host to read information about the device and allow it to configure and update the device's inner status. All USB devices are required to support this type of transfer. \textbf{Bulk transfers} are used in situations where the transfer rate is not critical such as sending a file to the printer or receiving data from the scanner. The priority of the transfer is the lowest. \textbf{Interrupt transfers} on the other hand are implemented in devices where instance feedback is needed. For example, click of a button on the keyboard or a movement of a mouse. \textbf{Isochronous transfers} guarantee delivery of data but no error correction is implemented. Usually used to transfer audio and video in real time. If an error occurs the device doesn't re-transmit lost or corrupted data.
 
-The process of sending data is called \textbf{transfer}. Transfer consists of one or more \textbf{transactions} which are block of packets that starts with \textbf{token packet}. Transaction can also contain additional packets called \textbf{data packet} and \textbf{handshake packet}. Each packet begins with a Packet ID (PID) that specifies what information the packet carries. The list is showed in \autoref{tab:pid}. In the first phase (token phase\footnote{Phase is a part of a sequence of a transaction. There can be three parts named after packets: token phase, data phase and handshake phase}), the host initiates communication by sending a token packet. In data phase, the host or device may transfer any kind of data in the data packet. And in the last (handshake) phase, the host or device sends status information in a handshake packet. There are also four special PIDs only used by low-speed devices. 
-    
+The process of sending data is called \textbf{transfer}. Transfer consists of one or more \textbf{transactions} which are block of packets that starts with \textbf{token packet}. Transaction can also contain additional packets called \textbf{data packet} and \textbf{handshake packet}. Each packet begins with a Packet ID (PID) that specifies what information the packet carries. The list is showed in \autoref{tab:pid}. In the first phase (token phase\footnote{Phase is a part of a sequence of a transaction. There can be three parts named after packets: token phase, data phase and handshake phase}), the host initiates communication by sending a token packet. In data phase, the host or device may transfer any kind of data in the data packet. And in the last (handshake) phase, the host or device sends status information in a handshake packet. There are also four special PIDs only used by low-speed devices.
+
 \subsection*{Descriptors}
 \label{descriptor}
 USB descriptors are data structures formatted into blocks that contain information about the device. It is used during the enumeration. All USB devices must be able to respond to requests for standard USB descriptors.
@@ -117,13 +123,13 @@ There are in total 11 descriptor classes that the device can define but not all 
 
 First two bytes of all descriptors stores two important pieces of information: \emph{bLength} declares the size of the descriptor/buffer that the host received and \emph{bDescriptorType} tells the host what type of information can it expect in the buffer.
 
-\textbf{Device} descriptor contains basic information about the device itself such as the version of USB used, device class, manufacture information, number of configurations of the device, and more. It's the first descriptor that is sent to the host. In total, the host will receive a buffer of 18 bytes. After the host retrieves the first descriptor it sends a request for a \textbf{configuration}, \textbf{interface}, and \textbf{endpoint} descriptors. They specify the device's features and abilities. 
+\textbf{Device} descriptor contains basic information about the device itself such as the version of USB used, device class, manufacture information, number of configurations of the device, and more. It's the first descriptor that is sent to the host. In total, the host will receive a buffer of 18 bytes. After the host retrieves the first descriptor it sends a request for a \textbf{configuration}, \textbf{interface}, and \textbf{endpoint} descriptors. They specify the device's features and abilities.
 
-When developing a device with a version of USB 2.0 or higher some additional data needs to be set. Since this version of USB allowed a developer to choose what transfer speed to use, he also is responsible to define the device information and configuration of the speed not in use. And for that reason, \textbf{device\_qualifier} and \textbf{other\_speed\_configuration} were created. The former contains \emph{device} descriptor of a device whose speed is currently not in use and the same goes for the latter one with \emph{configuration} descriptor. 
+When developing a device with a version of USB 2.0 or higher some additional data needs to be set. Since this version of USB allowed a developer to choose what transfer speed to use, he also is responsible to define the device information and configuration of the speed not in use. And for that reason, \textbf{device\_qualifier} and \textbf{other\_speed\_configuration} were created. The former contains \emph{device} descriptor of a device whose speed is currently not in use and the same goes for the latter one with \emph{configuration} descriptor.
 
-\textbf{Interface association} descriptor identifies multiple interfaces that are associated with a function\footnote{Function as a USB term is a device that provides a capability for the host (for example a keyboard)}. What that means is that a driver can support multiple interfaces within one device, such as the video and audio interface for a webcam. 
+\textbf{Interface association} descriptor identifies multiple interfaces that are associated with a function\footnote{Function as a USB term is a device that provides a capability for the host (for example a keyboard)}. What that means is that a driver can support multiple interfaces within one device, such as the video and audio interface for a webcam.
 
-\textbf{String} descriptor contains descriptive texts. Other descriptors can address each text using indices. For example, if \emph{iManufacture} is set to \verb|0x03| it tells the host that the name of the manufacturer is stored as the fourth string descriptor. 
+\textbf{String} descriptor contains descriptive texts. Other descriptors can address each text using indices. For example, if \emph{iManufacture} is set to \verb|0x03| it tells the host that the name of the manufacturer is stored as the fourth string descriptor.
 
 Other descriptors \--- \textbf{interface\_power}, \textbf{OTG}, \textbf{debug} \--- are not relevant to this thesis and their definitions can be found in the official documentation.
 
@@ -132,7 +138,7 @@ Other descriptors \--- \textbf{interface\_power}, \textbf{OTG}, \textbf{debug} \
 \begin{longtable}{|c|l|c|} \hline
     \textbf{Descriptor Type} & \textbf{Field} & \textbf{Bytes} \\ \hline
     \multirow{14}{*}{device (0x01)} & bLength & 1 \\ \cline{2-3}
-      & bDescriptorType & 1 \\ \cline{2-3} 
+      & bDescriptorType & 1 \\ \cline{2-3}
       & bcdUSB          & 2 \\ \cline{2-3}
       & bDeviceClass    & 1 \\ \cline{2-3}
       & bDeviceSubclass & 1 \\ \cline{2-3}
@@ -146,7 +152,7 @@ Other descriptors \--- \textbf{interface\_power}, \textbf{OTG}, \textbf{debug} \
       & iSerialNumber   & 1 \\ \cline{2-3}
       & bNumConfiguration & 1 \\ \hline
     \multirow{8}{*}{configuration(0x02)} & bLength & 1 \\ \cline{2-3}
-      & bDescriptorType & 1 \\ \cline{2-3} 
+      & bDescriptorType & 1 \\ \cline{2-3}
       & wTotalLength    & 2 \\ \cline{2-3}
       & bNumInterfaces  & 1 \\ \cline{2-3}
       & bConfigurationValue & 1 \\ \cline{2-3}
@@ -265,9 +271,9 @@ specification.
 
 To communicate with the host, HID specifies a structure called \emph{reports}\footnote{More information about reports in following \autoref{reports}.}. HID has six class-specific requests that the host can send to the device in order to retrieve information or update the internal state of the device:
 \begin{itemize}
-    \item \verb|Get_Report| \--- Host uses this request to retrieve Input or Feature reports\footnote{More information about reports in \autoref{reports}} from the HID. To determine which report the host wants to get it sends a constant in the parameter of the request (Input=1, Feature=3). Every HID is \textbf{required} to implement this procedure/response to this request. 
-    \item \verb|Set_Report| \--- Host uses this request to send the device Output or Feature reports. To determine which reports are incoming host passes as a parameter constant of the report (Output=2, Feature=3). Unless HID doesn't define \emph{Out Interrupt Endpoint descriptor} it doesn't have to implement a response to this request. 
-    \item \verb|Get_Idle| \--- Used by the host to read the current idle rate of HID. The device is not required to implement a response to this request. 
+    \item \verb|Get_Report| \--- Host uses this request to retrieve Input or Feature reports\footnote{More information about reports in \autoref{reports}} from the HID. To determine which report the host wants to get it sends a constant in the parameter of the request (Input=1, Feature=3). Every HID is \textbf{required} to implement this procedure/response to this request.
+    \item \verb|Set_Report| \--- Host uses this request to send the device Output or Feature reports. To determine which reports are incoming host passes as a parameter constant of the report (Output=2, Feature=3). Unless HID doesn't define \emph{Out Interrupt Endpoint descriptor} it doesn't have to implement a response to this request.
+    \item \verb|Get_Idle| \--- Used by the host to read the current idle rate of HID. The device is not required to implement a response to this request.
     \item \verb|Set_Idle| \--- Used by the host to limit the reporting frequency of an IN interrupt endpoint. The device is not required to implement a response to this request unless it's a keyboard that uses the boot protocol.
     \item \verb|Get_Protocol| \--- Host uses this request to learn whether the device is currently using boot or request protocol. Only boot devices must support this request.
     \item \verb|Set_Protocol| \--- Host updates device's protocol. Only boot devices must support this request
@@ -320,7 +326,7 @@ uint8_t desc_hid[] = {
 \label{reports}
 As discussed in \autoref{hid}, reports are structures through which the host can send and receive data from the device. The format is very flexible meaning the device can send any type of data. The only limitation is that reports have a fixed size that is defined by a report descriptor.
 
-\textbf{Report descriptor}, like other descriptors, is a structure that specifies the format of the report. It's a class-specific descriptor. If we look at \autoref{fig:hid_compose}, the compose device consists of two HID classes so we have to implement two separate report descriptors for each of them. 
+\textbf{Report descriptor}, like other descriptors, is a structure that specifies the format of the report. It's a class-specific descriptor. If we look at \autoref{fig:hid_compose}, the compose device consists of two HID classes so we have to implement two separate report descriptors for each of them.
 
 The report content format is specified by a list of \emph{items}. Each item is divided into two parts: the first byte identifies the item and the second set of bytes contains data. An example of a keyboard report descriptor that defines an Input report can be found below in \autoref{lst:report_example}.
 \begin{lstlisting}[caption={Example of report descriptor in C language},
@@ -342,7 +348,7 @@ uint8_t report_desc[] = {
 };
 \end{lstlisting}
 
-We can divide items based on the scope of usage: Main, Global, or Local. Items in the main scope define or group data items within a report descriptor. Items in global scope identify and describe what kind of data to expect in the report, such as maximum and minimum values, size of the report, or the number of items in the report. And local items specify the qualities of the controls and data items in a report. 
+We can divide items based on the scope of usage: Main, Global, or Local. Items in the main scope define or group data items within a report descriptor. Items in global scope identify and describe what kind of data to expect in the report, such as maximum and minimum values, size of the report, or the number of items in the report. And local items specify the qualities of the controls and data items in a report.
 
 Main scope defines five items: Input, Output, and Feature data items defining the content of a report. Collection and End Collection starts and ends the group. Input items apply to data that is sent from the device to the host. The host uses IN interrupt or Get\_Report request to request Input reports. Output items apply to data that the host sends to the device. They usually change the internal state of the device. For example, to vibrate a game controller during a fight in a game. The host uses OUT interrupt or Set\_Report request to send an Output report. Feature items apply to data that the host sends to the device. But it's not necessary and they can be used the other way around as well. Feature reports update the internal configuration settings of a device that affect the overall behavior of the device. For example, to turn on and off an LED on the keyboard. The host uses both Get\_Report and Set\_Report requests to send/retrieve Feature reports.
 
@@ -369,14 +375,14 @@ Global scope features twelve items which can be seen in \autoref{tab:global_item
     \label{tab:global_items}
 \end{table}
 
-Local items specify the qualities of the controls and data items in a report. There are ten types of items: Usage, Usage Minimum/Maximum, Designator Index, Designator Minimum/maximum, String Index, String Minimum/Maximum, and Delimiter. 
+Local items specify the qualities of the controls and data items in a report. There are ten types of items: Usage, Usage Minimum/Maximum, Designator Index, Designator Minimum/maximum, String Index, String Minimum/Maximum, and Delimiter.
 \chapter{BadUSB}
 \label{badusb}
 
 BadUSB is a computer security attack that targets peripherals that use USB interfaces. Unlike the usual USB flash disk attacks where the drivers contain harmful files, BadUSB attacks are immune against antivirus programs since the actual code is stored in an inaccessible section of memory. The notion of the attack is to infect the firmware of the USB device. From keyboards and mice to smartphones, if the firmware is reprogrammable then the device is likely exploitable. In 2014 approximately 50 \% of USB microcontrollers  were pruned to this kind of infection.
 
 \subsection*{First appearance}
-BadUSB was first revealed during Black Hat conference in the USA. Three security researchers Karsten Nohl, Jakob Lell, and Sascha Krißler demonstrated a collection of proof-of-concept malicious software that highlights the security weakness of the USB\cite{BlackHat}. They spent months reverse-engineering the thumb drive the firmware that runs the basic communication of the device. Nohl and Lell say they've also tested their attack on the Android handset plugged into the PC. And once a BadUSB-infected device is connected to the computer, it could install corrupted software with the backdoor. 
+BadUSB was first revealed during Black Hat conference in the USA. Three security researchers Karsten Nohl, Jakob Lell, and Sascha Krißler demonstrated a collection of proof-of-concept malicious software that highlights the security weakness of the USB\cite{BlackHat}. They spent months reverse-engineering the thumb drive the firmware that runs the basic communication of the device. Nohl and Lell say they've also tested their attack on the Android handset plugged into the PC. And once a BadUSB-infected device is connected to the computer, it could install corrupted software with the backdoor.
 
 Another type of attack was to hijack the internet traffic. The device changes the computer's DNS settings allowing the attack to redirect the traffic to any server he wants. It can also act as a man-in-the-middle, to spy the internet communication on the victim's computer.
 
@@ -384,11 +390,13 @@ The most horrific discovery was the idea that the infection can be spread amongs
 
 One year later, in December 2015, a group of researchers from University of Florida, David Jing Tian, Adam Bates, and Kevin Butler, published a paper talking about a defense against BadUSB. They built a new layer on top of Linux USB Stack that enforces permissions based on user expectations of device functionality. The additional defense layer (called \emph{GoodUSB}) acts as a mediator and is activated during the enumeration process. GoodUSB restricts USB devices access to USB drivers based on a policy. According to the team, the defense mechanism slows down the enumeration process by only 5.2 \% (from 7 milliseconds to 9 milliseconds)\cite{goodusb}.
 
+\todo{another types of attacks: USBlock: blocking USB-based Keypress Injection Attacks}
+
 \subsection*{Rubber Ducky and Usage}
 \label{rubber_ducky}
-Rubber Ducky is one of the BadUSB devices that were demonstrated at the conference. They presented an ordinary USB flask drive that acts like a keyboard. Once connected to the computer the device started typing commands. That can be used to open a command prompt to download and install a malicious software, or (since Rubber Ducky lacks video feedback for the attacker) create a reverse shell. 
+Rubber Ducky is one of the BadUSB devices that were demonstrated at the conference. They presented an ordinary USB flask drive that acts like a keyboard. Once connected to the computer the device started typing commands. That can be used to open a command prompt to download and install a malicious software, or (since Rubber Ducky lacks video feedback for the attacker) create a reverse shell.
 
-A reverse shell is a concept of connecting to the remote computer from the inside. For example, if I want to connect from the system A to B I can run a program named \textbf{ssh} (Secure Shell) on A. Reverse shell on the other hand run a shell on the system B that opens a shell on system A. What is the advantage of reverse shell? The fact that it bypasses firewall on system B. With reverse shell the attacker has access to the whole PC of a victim. 
+A reverse shell is a concept of connecting to the remote computer from the inside. For example, if I want to connect from the system A to B I can run a program named \textbf{ssh} (Secure Shell) on A. Reverse shell on the other hand run a shell on the system B that opens a shell on system A. What is the advantage of reverse shell? The fact that it bypasses firewall on system B. With reverse shell the attacker has access to the whole PC of a victim.
 
 In 2021, Hongyi Lu and his team at Southern University of Science and Technology published a paper regarding the upgraded version of the device. They implemented a BadUSB on top of a USB device with Type-C connector and named it \emph{BadUSB-C}. Type-C connector supports higher data transmit rate (10 Gbps) which is needed for video capturing. The team fitted a USB device with a Wifi module that lets them see the victim's screen content and control his device using HID emulator (as seen in \autoref{fig:badusbc_model} taken from the original work)\cite{badusbc}.
 
@@ -399,7 +407,7 @@ In 2021, Hongyi Lu and his team at Southern University of Science and Technology
     \label{fig:badusbc_model}
 \end{figure}
 
-But Rubber Ducky does not have to be seen only as a malicious device. Its ability to perform a script of commands/keystrokes makes it a perfect tool for repetitive tasks. For example, if a user benchmarks computers he can write a script that will configure the computer the same way every time. It's a powerful tool that can greatly help users with everyday tasks but also a dangerous device if used in the wrong way can cause a lot of damage. 
+But Rubber Ducky does not have to be seen only as a malicious device. Its ability to perform a script of commands/keystrokes makes it a perfect tool for repetitive tasks. For example, if a user benchmarks computers he can write a script that will configure the computer the same way every time. It's a powerful tool that can greatly help users with everyday tasks but also a dangerous device if used in the wrong way can cause a lot of damage.
 
 % \begin{figure}[ht]
 %     \centering
@@ -411,7 +419,7 @@ But Rubber Ducky does not have to be seen only as a malicious device. Its abilit
 
 \chapter{Design and Architecture}
 \label{designAndArchitecture}
-In this section, we analyze the key features of this project. The goal here is to break down the whole problem into manageable parts, identify critical problems and come up with a solution. 
+In this section, we analyze the key features of this project. The goal here is to break down the whole problem into manageable parts, identify critical problems and come up with a solution.
 
 Since our device is based on Hak5's Rubber Ducky it must support its main functionality. The device will have the ability to execute a series of keystrokes that are stored within the firmware of the device. The software will provide an easy way to create, generate, and upload these payloads. Together with a keyboard, the device will also include Mass Storage where the user can store a shell basic script or executable file, which he/she can then run it on the host machine.
 \todo{add use case diagram}
@@ -458,7 +466,7 @@ What I come up with is a language inspired by a VIM key notation\footnote{VIM (w
 
 <PRINTABLE>           ::= ASCII printable character
 \end{verbatim}
-\caption{Language grammar in BNF notation} 
+\caption{Language grammar in BNF notation}
 \label{fig:language_grammar_bnf}
 \end{figure}
 
@@ -472,7 +480,7 @@ In total, there are 95 printable characters in the ASCII table ranging from 32, 
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
 shift+key_h, key_e, key_l, key_l, key_o, spacebar,
-shift+key_w, key_o, key_r, key_l, key_d, shift+key_1  
+shift+key_w, key_o, key_r, key_l, key_d, shift+key_1
 \end{verbatim}
 \end{varwidth}
 \caption{\emph{Hello world!} converted to key presses.}
@@ -493,7 +501,7 @@ CZ layout: page%+ěš.cy
 \caption{Comparing outputs between cs-CZ and en-US layout given the same input string.}
 \end{figure}
 
-A \textbf{Special combination} gives the user more control over the key presses. It extends the functionality by adding features that cannot be executed using only \emph{printable keys}. The format of the \emph{special combination} looks as follows: 
+A \textbf{Special combination} gives the user more control over the key presses. It extends the functionality by adding features that cannot be executed using only \emph{printable keys}. The format of the \emph{special combination} looks as follows:
 
 \begin{figure}[ht]
 \label{fig:format_special}
@@ -545,13 +553,13 @@ Other additions to \emph{non-printable keys} are supports for \emph{modifier key
 \end{itemize}
  We have already encountered a modifier key when discussing printable keys. When we press \verb|Shift| key together with \verb|Key_s| the \emph{shift} key changes the action of the \emph{s} key to output upper case \emph{S} instead of lowercase \emph{s} it would normally output. We can also associate modifier keys with keyboard shortcuts, the most famous one being \verb|alt+f4| to close an active window on Windows or \verb|ctrl+s| to save the content of a file. Modifier keys usually don't produce any action when pressed alone (Meta key notably being an exception) so they are handled differently when sending keystrokes to the host's machine. In the \emph{special combination} format modifier keys are placed before normal keys as seen in \autoref{fig:language_grammar_bnf}. Each modifier is identified by the location of the key followed by its starting letter \-- \verb|'la'| for \verb|LeftAlt|, \verb|'rs'| for \verb|RightShift|, and so on. If the user doesn't specify which one of the keys is meant, the left one will be chosen implicitly \-- \verb|'m'| will trigger \verb|LeftMeta|, \verb|'c'| will trigger \verb|LeftControl|, and so on. Each key is then separated with a \verb|-| separator.
 
-\textbf{Holding time}, as the name suggests, defines how long a group of keys is meant to be pressed before releasing, measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0. 
+\textbf{Holding time}, as the name suggests, defines how long a group of keys is meant to be pressed before releasing, measured in milliseconds. The hold delay value is expected to be at the start of the \emph{special combination}. This field is not required to be filled and the implicit value is set to 0.
 
-The last thing the \emph{special combination} scope supports is to force multiple \emph{printable keys} to be pressed at the same time. That is especially useful when the user wants to execute a keyboard shortcut that consists of two or more normal keys. As an example, we can use Visual Studio Code's\footnote{Visual Studio Code is a popular graphical text editor developed by Microsoft that supports extensions: \url{https://code.visualstudio.com/}} keyboard shortcut for closing all files in the editor: \verb|Ctrl+k Ctrl+w|. The language's equivalent of the given keystrokes is \verb|<c-kw>|. 
+The last thing the \emph{special combination} scope supports is to force multiple \emph{printable keys} to be pressed at the same time. That is especially useful when the user wants to execute a keyboard shortcut that consists of two or more normal keys. As an example, we can use Visual Studio Code's\footnote{Visual Studio Code is a popular graphical text editor developed by Microsoft that supports extensions: \url{https://code.visualstudio.com/}} keyboard shortcut for closing all files in the editor: \verb|Ctrl+k Ctrl+w|. The language's equivalent of the given keystrokes is \verb|<c-kw>|.
 
-There are some letters that would not work in this format, \verb|<| and \verb|>| being the case. For that, I created a group of \emph{macro keys}. A \textbf{Macro key} is an alias to an existing key. It can be an alias to either the normal key or modifier key and is treated the same way as a \emph{non-printable key} \-- it starts with an escape backslash character followed by the name of the macro. So we can use \verb|<\gt>| and \verb|<\lt>| in to produce \verb|<| and \verb|>| respectively. 
+There are some letters that would not work in this format, \verb|<| and \verb|>| being the case. For that, I created a group of \emph{macro keys}. A \textbf{Macro key} is an alias to an existing key. It can be an alias to either the normal key or modifier key and is treated the same way as a \emph{non-printable key} \-- it starts with an escape backslash character followed by the name of the macro. So we can use \verb|<\gt>| and \verb|<\lt>| in to produce \verb|<| and \verb|>| respectively.
 
-The last feature of the language is the ability to write \emph{comments}. The comment grammar is inspired by scripting programming languages such as Bash or Python. It starts with \verb|#| symbol and the characters that follows this symbol are all ignored by the parser until the end of the line. There are no multi-line comments support. If the user wants to type a \verb|#| symbol he/she needs to put it into the \emph{special combination} scope. 
+The last feature of the language is the ability to write \emph{comments}. The comment grammar is inspired by scripting programming languages such as Bash or Python. It starts with \verb|#| symbol and the characters that follows this symbol are all ignored by the parser until the end of the line. There are no multi-line comments support. If the user wants to type a \verb|#| symbol he/she needs to put it into the \emph{special combination} scope.
 
 The following \autoref{lst:example_payload} shows an example payload written showcasing all the grammar syntax of the language.
 \begin{lstlisting}[caption={Example payload in custom language.},
@@ -598,7 +606,7 @@ Since our development board supports WiFi we made a decision to create a communi
 
 The server, on the other hand, will have only two types of responses: an \textbf{OK} response which signalizes that the request was successfully processed and an \textbf{ERR} response with an error message when something unexpected happened while processing the request.
 
-What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with the packet's content (payload data). 
+What we came up with is a communication protocol on L7 application layer\footnote{More about Internet Network's ISO/OSI model here: \url{https://www.ietf.org/rfc/rfc1122.txt}} with a diagram shown in \autoref{fig:communication_protocol_packet_format}, \autoref{fig:communication_protocol_request}, and \autoref{fig:communication_protocol_response}. We wanted to simplify the packet's structure as much as possible. The packet header is 4 bytes long with the rest of the packet being filled with the packet's content (payload data).
 
 \begin{figure}[ht]
 \centering
@@ -607,7 +615,7 @@ What we came up with is a communication protocol on L7 application layer\footnot
                   Packet format
                   =============
 
-      0           1           2           3      
+      0           1           2           3
 +-----------+-----------+-----------+-----------+
 |  OP CODE  | RESERVED  |    PAYLOAD LENGTH     |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -616,7 +624,7 @@ What we came up with is a communication protocol on L7 application layer\footnot
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 \end{verbatim}
 \end{varwidth}
-\caption{Communication protocol's packet format used in the project.} 
+\caption{Communication protocol's packet format used in the project.}
 \label{fig:communication_protocol_packet_format}
 \end{figure}
 
@@ -676,7 +684,7 @@ Operation codes and their values:
 \end{verbatim}
 \end{small}
 \end{varwidth}
-\caption{Set of request's operational codes, their payload, and description.} 
+\caption{Set of request's operational codes, their payload, and description.}
 \label{fig:communication_protocol_request}
 \end{figure}
 
@@ -688,7 +696,7 @@ The second group's purpose is to alter the payload stored on the device. It is r
 \centering
 \begin{varwidth}{\linewidth}
 \begin{verbatim}
-    0     1      2      3      4      5      6      7   
+    0     1      2      3      4      5      6      7
 +------+------+------+------+------+------+------+------+
 |            DELAY          | MDFR | RESV | KEY1 | KEY2 |
 +------+------+------+------+------+------+------+------+
@@ -728,7 +736,7 @@ Now, we can analyze the last two operation codes which we can see in \autoref{fi
 \label{fig:communication_protocol_response}
 \end{figure}
 
-Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{fig:dataflow_example}: 
+Let's end this section with a data flow diagram showcasing a possible communication between the \emph{server} (device) and the \emph{client} (user) shown below in \autoref{fig:dataflow_example}:
 
 \begin{figure}
     \centering
@@ -753,7 +761,8 @@ This project was developed using four open-source an SDK and libraries:
 \end{description}
 
 \section{Rubber Ducky device}
-\todo{UML diagram here}
+This section gives an overview on how the software on the Raspberry Pi Pico was implemented.
+
 \subsection{USB configuration}
 In the first part, I needed to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
 
@@ -851,7 +860,7 @@ Unfortunately, due to Raspberry Pi Pico's lack of onboard nonvolatile memory, I 
 
 \subsection{The payload}
 \label{thePayload}
-The payload and its API are managed in \verb|keyseqv| directory. The structural layout can be seen in \todo{UML diagram}. Each key sequence structure contains a \textbf{delay} that will be applied after sending the report to the host, the \textbf{report} with key presses itself, and a \textbf{last item} flag which tells the device to not send any report after this one. The whole payload is then stored in \verb|key_seqvs| array and defined in \verb|key_seqv_script.c| source file. This file can be generated by \verb|rd_client| script. 
+The payload and its API are managed in \verb|keyseqv| directory. Each key sequence is represented by a \verb|key_seqv_t| structure which can be seen in \todo{UML diagram}. It contains three members: a \textbf{delay} that will be applied after sending the report to the host, the \textbf{report} with key presses itself, and a \textbf{last item} flag which tells the device to not send any report after this one. The whole payload is then stored in \verb|key_seqvs| array and defined in \verb|key_seqv_script.c| source file. This file can be generated by \verb|rd_client| script.
 
 Lastly, the \verb|key_seqv.c| source file defines all the functions that operate directly with the \verb|key_seqv_t| structure. That includes functions that update the payload content through the server's API (more in the next section) and those that are used for executing the payload. The two most important functions here are named \verb|key_seqv_increase_counter| \linebreak which moves the cursor index to the next item (key sequence) in the array, and \linebreak\verb|key_seqv_get_report| which retrieves the current report from the array.
 
@@ -889,16 +898,15 @@ In order for the device to act as an access point the user needs to set \verb|WI
 
 After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory\todo{uml}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and that will be happening in the isolated private network.
 
-\begin{center}
-    \lstset{
-        caption={A basic network configuration used in the project. In this case, the IP address of the network is \textbf{192.168.4.0/30}.},
-        label={lst:dhcp_config},
-        language=c,
-    }
-    \begin{lstlisting}
+\lstset{
+    caption={A basic network configuration used in the project. In this case, the IP address of the network is \textbf{192.168.4.0/30}.},
+    label={lst:dhcp_config},
+    language=c,
+}
+\begin{lstlisting}
 int main() {
     // ...
-    
+
     // define network's IP range
     struct network_data_t nd;
     IP4_ADDR(ip_2_ip4(&(nd.gateway)), 192, 168, 4, 1);
@@ -909,12 +917,11 @@ int main() {
 
     // ...
 }
-    \end{lstlisting}
-\end{center}
+\end{lstlisting}
 
-There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The dataflow diagram \todo{diagram} below shows what the whole process from receiving the request to sending a response looks like. 
+There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The dataflow diagram \todo{diagram} below shows what the whole process from receiving the request to sending a response looks like.
 
-\section{Script parser}
+\section{Language parser}
 This section describes how the parser of the language, defined in \autoref{customLanguage}, works. Both lexical and syntax analysis of the input is done using regular expression in \verb|KeySeqvParser| class. I use groups in the regex pattern (as seen in \autoref{fig:regex}) to extract data from the input string.
 \begin{figure}[ht]
 \centering
@@ -931,14 +938,14 @@ First, the program cycles through the lines from the input file or \verb|STDIN|.
 \label{alg:parsing}
 \SetKwComment{Comment}{// }
 \texttt{key sequence} = empty key sequence\;
-\For{\texttt{line} in \texttt{input}}{
+\ForEach{\texttt{line} in \texttt{input}}{
     check \texttt{line} string and extract all \texttt{groups}\;
-    \For{\texttt{group} in \texttt{groups}}{
+    \ForEach{\texttt{group} in \texttt{groups}}{
         \If{\texttt{key sequence} is full}{
             add \texttt{key sequence} to \texttt{lof\_keyseqvs}\;
             initialize empty \texttt{key sequence}\;
         }
-        fill data from \texttt{group} to \texttt{key sequence}\;  
+        fill data from \texttt{group} to \texttt{key sequence}\;
     }
     \Comment{store the last pending key sequence if exists}
     \If{\texttt{key sequence} is not empty}{
@@ -948,26 +955,120 @@ First, the program cycles through the lines from the input file or \verb|STDIN|.
 }
 \end{algorithm}
 
-The elementary key sequence is stored in the \verb|KeySeqv| class \todo{finish this one}. \todo{uml diagram}.
+The class \verb|KeySeqv| contains information about a single key sequence. It is the same structure as a \verb|key_seqv_t| structure we can find on the Rubber Ducky system (see \autoref{thePayload}). The class also contains a \verb|to_bytes| method which converts the content of the object to a series of bytes which complies with the key sequence byte format described in \autoref{fig:key_sequence_format}. The whole parser module can be seen in \todo{uml diagram}.
 
 \section{Client application}
-% TODO:
+There are two mode to run the client application:
+\begin{description}
+    \item [CLI mode] is a CLI application that was made for creating static payloads. It converts the keystrokes written in Rubber Ducky language to a C source code. The user can use it to replace the existing \verb|rubber_ducky/keyseqv/key_seqv_script.c| file.
+    \item [Network mode] is a CLI application that was made for updating the payload on the USB device wirelessly using sockets.
+\end{description}
+Both frontend applications classes (\verb|CliMode| and \verb|NetworkMode|) derive from that base class \verb|BaseMode| as seen in \todo{uml}. They both process the input script the same way by creating an instance of \verb|KeySeqvParser| class and feed it with the input data as described in the previous section. What differentiate them apart is how they handle the processed data. \verb|CliMode| generates a new C source code file on the \verb|STDOUT| or output file if it was given. \verb|NetworkMode| on the other hand creates a TCP connection with the server and perform a series of requests where it sets the USB device to \emph{read-write} mode, sends \verb|PUSH_DATA| requests for each key sequence stored in \verb|KeySeqvParser|, set the device back to \emph{read-only} mode, and finish it off by sending a \verb|RUN_SEQUENCES| to start executing the payload. The \todo{diagram} shows the described steps.
+
+The user can choose what mode to run based on the given application parameters. \verb|-n/--network| flag will toggle the \emph{network mode}. Otherwise a \emph{CLI mode} is run by default. All of this is handled in \verb|get_mode| function in \verb|utils.py| (shown in \autoref{lst:get_modes}). Lastly, the user can also toggle an option to generate logs by adding \verb|-v/--verbose| flag. That is handled using Python's standard \verb|logging| library.
+
+\lstset{
+    caption={This snippet of code shows how the frontend mode is chosen.},
+    label={lst:get_modes},
+    language=python,
+}
+\begin{lstlisting}
+# module rd_client.app_modes.utils
+
+def get_mode() -> BaseMode:
+    """Factory function that returns AppMode based on given arguments."""
+
+    args = __process_args()
+
+    # return selected mode
+    if args['network']:
+        # communication with RubberDucky using network (wifi)
+        return NetworkMode(args['input'], args['port'], args['host'], args['verbose'])
+    # cli script parsing to C-file source code
+    return CliMode(args['input'], args['output'], args['verbose'])
+\end{lstlisting}
 
 \section{Summary}
 The diagram below \todo{add diagram} summarizes how the Rubber Ducky and client application work.
 
-\chapter{Rubber Ducky testing}
+\chapter{Rubber Ducky capabilities}
 \label{practicalTest}
-% TODO:
+In this section I am going to talk about how I tested my implementation of the Rubber Ducky device. The testing can be divided into three phases: before the implementation of the parser, after the implementation of the parser, and after the implementation of the WiFi module.
 
-\chapter{Attack payloads}
-\label{attackPayloads}
-This section 
-% TODO:
+\todo{do i need this chapter??}
+\todo{fast typing}
+\todo{pretty accurate timing}
 
-\chapter{Defense and Testing}
+\chapter{Malicious payloads}
+\label{maliciousPayloads}
+The chapter analyzes the payloads that can be installed on our USB device, specifically the ones that were designed to cause some damage on the victim's machine. Most of the attacks require access to the command line application (or terminal). Once the access has been granted, the attacker can execute one of these four actions:
+
+\begin{itemize}
+    \item update system's configuration,
+    \item download and execute a malicious script from the internet or stored inside the connected device,
+    \item perform a DOS attack with ping or BSoD (Blue Screen of Death),
+    \item create a communication tunnel by initializing a reverse shell.
+\end{itemize}
+
+The first on the list is \textbf{updating system's configuration}. The attacker can create a payload that would for example change the network settings (change IP address of the DNS server), turn off firewall, disable antivirus or built-in hardware such as touchpad or keyboard. The commands can be seen below in \todo{add commands}.
+
+%\todo{reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f}
+
+Another possible attack \todo{it can download and run malicious script from the internet or on the storage }
+
+The attack can also force Blue Screen of Death or perform Ping of Death.
+
+\todo{it can create a communication tunnel initializing a reverse shell}
+
+\chapter{Testing defense mechanisms}
 \label{defense}
-% TODO:
+As the time of writing there are many available defense software on the internet. In this section, I describe how some of them works and whether my device was able to break through any of them or not. I used free open-source program USBGuard on GNU/Linux and Kaspersky Endpoint Security program on Windows 10.
+
+\section{Selected programs}
+\textbf{USBGuard}\footnote{\url{https://github.com/USBGuard/usbguard}} is a software framework for implementing USB device authorization policies. It was developed in 2015 and has been manage by Red Hat Inc. since then. It consists of two main programs: \verb|usbguard-daemon| and \verb|usbguard|. The former is a service which runs in the background and apply USBGuard policies to each USB devices. The behavior of the service can be configure by editing \verb|usbguard-daemon.conf|. The latter is a command line interface which provides the user a tool to update the USBGuard policies.
+
+Before I started experimenting I needed to initialize the service. The instructions were very simple: generate an initial policy file using \verb|usbguard generate-policy| and then start the service with \verb|systemctl start usbguard.service|. It was critical to generate the rules before starting the service, otherwise all USB device would be blocked by the daemon once started. The program scans all the USB devices and hubs currently connected to the machine and set their target to "allow" meaning they are all whitelisted on the host machine. The testing environment was \verb|Fedora Linux 36 (Thirty Six); kernel 6.2.9|.
+
+The program that I chose on Windows operating systems is called \textbf{Kaspersky Endpoint Security}\footnote{\url{https://www.kaspersky.com/small-to-medium-business-security/endpoint-windows}}. It is a security application that provides a computer protection against various types of threads, network or phishing attacks. It contains a list of protection components such as File Threat Protection, Web Thread Protection, system scan and much more. What we are interested in is their \textbf{BadUSB Attack Prevention}. It works as following: when a new USB device that emulates a keyboard is connected to the computer, the user receives a pop-up window where he/she has to type 4 digit number that is displayed on the screen from the connected device. The testing environment for this application was \verb|Windows 10 21H2|.
+
+I tested these software in the following way:
+\begin{enumerate}
+    \item Enable only HID class on the Rubber Ducky device.
+    \item Connect the device to the host machine with installed and running application.
+    \item Observe the application's behaviour.
+    \item Give the USB device an access to the system and connect the device again.
+    \item Enable MSC on the Rubber Ducky device.
+    \item Connect the device again and observe if something has changed.
+\end{enumerate}
+The payload that is present on the USB device opens a terminal or powershell and runs \verb|ls| command. I also added a feature where the LED on board turns on when the device starts to execute the payload.
+
+First, I tested the USBGuard software on Fedora. When I connected the Rubber Ducky device to machine with USBGuard running, as expected, no keystrokes injection happened. In fact, the device did not finish the enumeration process because the LED did not turn on. The system registers that a new device has been connected but the application immediately blocked it as you can see in \autoref{fig:usbguard_device_blocked}. After I change the policy for this particular device the status changed to "allow" and the payload was executed. Unfortunately, the beginning of the command was trimmed and only \verb|ls| command was executed (a new terminal did not opened).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/usbguard_watch.png}
+    \caption{Screenshot of USBGuard logging after a new USB device is plugged in.}
+    \label{fig:usbguard_device_blocked}
+\end{figure}
+
+USBGuard also gave me an option to update the device's policy permanently. Once I whitelisted the Rubber Ducky device it did successfully fully execute the payload. I also tried to plug it into different ports. What I found was that the policy did not applied to the device if it was connected to a different USB HUB then previously \todo{show hub layout and explain it}. And lastly, I updated the device's firmware to enable MSC. And again the USBGuard successfully blocked the device and prevented it from executing the payload.
+
+Kaspersky Endpoint Security program next to be tested. Upon connecting the Rubber Ducky device I immediately received a pop up windows as shown in \autoref{fig:screenshot_kaspersky_popup}. The device did manage to execute the keystrokes but nothing happened on the host machine since it was "stuck" in the pop up window. The Kaspersky program let me input the numbers using my mouse and whitelist the USB device. Unfortunately, I was unable to locate the list of whitelisted devices to remove it from the list. Once the device was whitelisted it also successfully executed the payload. Interestingly, the Kaspersky behaves in a similar way as USBGuard when I tried to connect the device in different ports. Unless I connected it in the same HUB I received a authentication pop up window.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/kaspersky_keyboard_test.png}
+    \caption{Pop up authentication by Kaspersky Endpoint Security program.}
+    \label{fig:screenshot_kaspersky_popup}
+\end{figure}
+
+\todo{finish with MSC, write that the no pop up is received until the host receives a keystroke and i was able to get through the defense using wifi module and typing the code wirelessly}
+\todo{disable easy access to the command line}
+
+\section{Another defense mechanisms available}
+\todo{another defense software and mechanisms: GoodUSB, turning off firmware updates}
+
+\todo{my approach: upon plugging the device change the keyboard layout}
 
 \chapter{Conclusion}
 \label{conclusion}
