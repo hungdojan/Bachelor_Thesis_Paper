@@ -983,7 +983,8 @@ def get_mode() -> BaseMode:
     # return selected mode
     if args['network']:
         # communication with RubberDucky using network (wifi)
-        return NetworkMode(args['input'], args['port'], args['host'], args['verbose'])
+        return NetworkMode(args['input'], args['port'],
+                           args['host'], args['verbose'])
     # cli script parsing to C-file source code
     return CliMode(args['input'], args['output'], args['verbose'])
 \end{lstlisting}
@@ -1053,19 +1054,26 @@ First, I tested the USBGuard software on Fedora. When I connected the Rubber Duc
 
 USBGuard also gave me the option to update the device's policy permanently. Once I whitelisted the Rubber Ducky device it did successfully fully execute the payload. I also tried to plug it into different ports. What I found was that the policy did not apply to the device if it was connected to a different USB HUB than previously \todo{show hub layout and explain it}. And lastly, I updated the device's firmware to enable MSC. And again the USBGuard successfully blocked the device and prevented it from executing the payload.
 
-Kaspersky Endpoint Security program was next to be tested. Upon connecting the Rubber Ducky device I immediately received a pop-up window as shown in \autoref{fig:screenshot_kaspersky_popup}. The device did manage to execute the keystrokes but nothing happened on the host machine since it was "stuck" in the pop-up window. The Kaspersky program let me input the numbers using my mouse and whitelist the USB device. Unfortunately, I was unable to locate the list of whitelisted devices to remove it from the list. Once the device was whitelisted it also successfully executed the payload. Interestingly, the Kaspersky behaves in a similar way to USBGuard when I tried to connect the device to different ports. Unless I connected it in the same HUB I received an authentication pop-up window.
-
+Kaspersky Endpoint Security program was next to be tested. Upon connecting the Rubber Ducky device I immediately received a pop-up window as shown in \autoref{fig:screenshot_kaspersky_popup}. The device did manage to execute the keystrokes but nothing happened on the host machine since it was "stuck" in the pop-up window. The Kaspersky program let me input the numbers using my mouse and whitelist the USB device.
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\linewidth]{./obrazky-figures/kaspersky_keyboard_test.png}
     \caption{Pop-up authentication by Kaspersky Endpoint Security program.}
     \label{fig:screenshot_kaspersky_popup}
 \end{figure}
+Unfortunately, I was unable to locate the list of whitelisted devices to remove it from the list. Once the device was whitelisted it did successfully execute the payload just like on the previous test with USBGuard. But interestingly, unlike USBGuard, Kaspersky application did blocked all other ports including those within the same hub. And it also registered the change of firmware when MSC class was enabled. In \autoref{fig:kaspersky_report} you can see the reports of the program.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/kaspersky_report.PNG}
+    \caption{The Kaspersky Endpoint Security reports of the test. The reports are are sorted from the newest to the oldest. We can see that the first connection (at 8:02 PM) was blocked, then I authorized the device (8:12 PM), tried a different port (8:24 PM) and lastly plugged the device with an updated firmware into the first port (8:41 PM).}
+    \label{fig:kaspersky_report}
+\end{figure}
 
-\todo{finish with MSC, write that the no pop up is received until the host receives a keystroke and i was able to get through the defense using wifi module and typing the code wirelessly}
-\todo{disable easy access to the command line}
+Both programs were very effective against the keystrokes injection attacks. The USBGuard was more effective since the device has no real access to the system and all USB related attacks would have been suppressed (not only the keystrokes injection attack). The disadvantage of USBGuard is its not very intuitive control. \todo{no notification -> usbguard qt applet/usbguard notifier, the control is not user friendly -> knowledge of working in terminal is required}
+
 
 \section{Another defense mechanism available}
+\todo{disable easy access to the command line}
 \todo{another defense software and mechanisms: GoodUSB, turning off firmware updates}
 
 \todo{my approach: upon plugging the device change the keyboard layout}
