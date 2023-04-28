@@ -472,8 +472,7 @@ What I come up with is a language inspired by a VIM key notation\footnote{VIM (w
 
 There are two types of lexical tokens that the language accepts: \emph{printable keys} and \emph{special combinations}.
 
-\textbf{Printable keys} are a group of keys that can produce an ASCII printable character. \todo{insert an ASCII table picture}
-In total, there are 95 printable characters in the ASCII table ranging from 32, representing a \emph{space} character, to 126, representing a \emph{tilde} character. However, there are only 48 keys that directly produce a printable character. The second half of the keys also require a \emph{shift} modifier (the exception being a spacebar key which doesn't have a shift counterpart). So a string \verb|Hello World!| will produce the following list of keys seen in \autoref{fig:list_of_keys}:
+\textbf{Printable keys} are a group of keys that can produce an ASCII printable character. In total, there are 95 printable characters in the ASCII table ranging from 32, representing a \emph{space} character, to 126, representing a \emph{tilde} character. However, there are only 48 keys that directly produce a printable character. The second half of the keys also require a \emph{shift} modifier (the exception being a spacebar key which doesn't have a shift counterpart). So a string \verb|Hello World!| will produce the following list of keys seen in \autoref{fig:list_of_keys}:
 
 \begin{figure}[ht]
 \centering
@@ -761,7 +760,13 @@ This project was developed using four open-source an SDK and libraries:
 \end{description}
 
 \section{Rubber Ducky device}
-This section gives an overview on how the software on the Raspberry Pi Pico was implemented.
+This section gives an overview on how the software on the Raspberry Pi Pico was implemented. The class diagram can be seen in \autoref{fig:rubber_ducky_module}.
+
+\begin{figure}[ht]
+    \includegraphics[width=\linewidth]{./obrazky-figures/rubber_ducky_module.pdf}
+    \caption{RubberDucky module UML class diagram.}
+    \label{fig:rubber_ducky_module}
+\end{figure}
 
 \subsection{USB configuration}
 In the first part, I needed to configure the USB device to make it ready for the enumeration process. TinyUSB library requires \verb|tusb_config.h| header file, which defines configuration macros, such as \verb|CFG_TUD_ENABLED| to set the device as a "device" and not as a "host", or \verb|CFG_TUD_HID| which defines how many HID configurations will the device have, and more. Part of the configuration was moved to \verb|config.h| header file. This file contains macros that the user can freely edit. \verb|config.h| is then imported to \verb|tusb_config.h|.
@@ -856,11 +861,17 @@ Mass storage configuration is located, surprisingly, in \verb|msc.c| file. TinyU
     \item \verb|tud_msc_capacity_cb| -- Determines a disk size.
     \item \verb|tud_msc_scsi_cb| -- Defines the logic of other SCSI commands.
 \end{itemize}
-Unfortunately, due to Raspberry Pi Pico's lack of onboard nonvolatile memory, I had to write a static file system from scratch. I chose a \textbf{FAT12} file system since it is one of the simplest file systems out there and for the proof of concept a sufficient one. The whole content of the file system is stored in the \verb|memory_disk| array which emulates a physical disk. It is represented as a two-dimensional array with the first dimension emulating an array of \emph{sectors} and the second dimension being the \emph{sector}\footnote{A sector is an elementary storage unit. It is the smallest number of bytes that the host can retrieve from the disk.} itself. The first sector contains a \textbf{boot table}, the second one is a \textbf{FAT table}, the third one is a \textbf{root directory}, and the rest of the disk is filled with file contents. Each part of the file system is described in \cite{fatFS}. \todo{diagram??}
+Unfortunately, due to Raspberry Pi Pico's lack of onboard nonvolatile memory, I had to write a static file system from scratch. I chose a \textbf{FAT12} file system since it is one of the simplest file systems out there and for the proof of concept a sufficient one. The whole content of the file system is stored in the \verb|memory_disk| array which emulates a physical disk. It is represented as a two-dimensional array with the first dimension emulating an array of \emph{sectors} and the second dimension being the \emph{sector}\footnote{A sector is an elementary storage unit. It is the smallest number of bytes that the host can retrieve from the disk.} itself. The first sector contains a \textbf{boot table}, the second one is a \textbf{FAT table}, the third one is a \textbf{root directory}, and the rest of the disk is filled with file contents. Each part of the file system is described in \cite{fatFS}.
 
 \subsection{The payload}
 \label{thePayload}
-The payload and its API are managed in \verb|keyseqv| directory. Each key sequence is represented by a \verb|key_seqv_t| structure which can be seen in \todo{UML diagram}. It contains three members: a \textbf{delay} that will be applied after sending the report to the host, the \textbf{report} with key presses itself, and a \textbf{last item} flag which tells the device to not send any report after this one. The whole payload is then stored in \verb|key_seqvs| array and defined in \verb|key_seqv_script.c| source file. This file can be generated by \verb|rd_client| script.
+The payload and its API are managed in \verb|keyseqv| directory. Each key sequence is represented by a \verb|key_seqv_t| structure which can be seen in \autoref{fig:keyseqv_module}. It contains three members: a \textbf{delay} that will be applied after sending the report to the host, the \textbf{report} with key presses itself, and a \textbf{last item} flag which tells the device to not send any report after this one. The whole payload is then stored in \verb|key_seqvs| array and defined in \verb|key_seqv_script.c| source file. This file can be generated by \verb|rd_client| script.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{./obrazky-figures/keyseqv_module.pdf}
+    \caption{Keqseqv module UML class diagram.}
+    \label{fig:keyseqv_module}
+\end{figure}
 
 Lastly, the \verb|key_seqv.c| source file defines all the functions that operate directly with the \verb|key_seqv_t| structure. That includes functions that update the payload content through the server's API (more in the next section) and those that are used for executing the payload. The two most important functions here are named \verb|key_seqv_increase_counter| \linebreak which moves the cursor index to the next item (key sequence) in the array, and \linebreak\verb|key_seqv_get_report| which retrieves the current report from the array.
 
@@ -892,11 +903,17 @@ device initialization\;
 \end{algorithm}
 
 \section{WiFi Access Point and TCP Server}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/rd_server_module.pdf}
+    \caption{RD Server module UML class diagram.}
+    \label{fig:rd_server_module}
+\end{figure}
 To run a server we need 2 things: a port and an IP address of the server. But first, the Raspberry Pi Pico device needs to be connected to the network. There are two ways to achieve this: the device can either connect to the local WiFi once it is powered up, or it can create an access point and let the client connect to its WiFi network. I chose to implement the latter one. The advantage of having the device being an access point is that I know the IP address of the server \--- it is the IP address of the network's gateway. The disadvantage is that I need to implement a DHCP server\footnote{DHCP (Dynamic Host Configuration Protocol) is a network management protocol used to dynamically assign an IP address to any device, or node, on a network so it can communicate using IP (source: \url{https://www.techtarget.com/searchnetworking/definition/DHCP})} in order to have a functional network.
 
 In order for the device to act as an access point the user needs to set \verb|WIFI_ENABLE| macro, network's SSID (or simply a name), and password, all in \verb|config.h| header file. Once done, Raspberry's software will call \verb|cyw43_arch_enable_ap_mode| during the initialization phase.
 
-After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory\todo{uml}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and that will be happening in the isolated private network.
+After the access point is running, the TCP servers for DHCP and our application are initialized. They are all defined in \verb|rd_server| directory seen in \autoref{fig:rd_server_module}. The source codes for the DHCP server are taken over from Raspberry Pi Pico's example page\footnote{DHCP server source codes: \url{https://github.com/raspberrypi/pico-examples/tree/master/pico_w/wifi/access_point}}. We initialize the DHCP server by providing the network's gateway and mask (see \autoref{lst:dhcp_config}). There is no DNS server in this network since we only want to create communication between the USB device and a client's application and that will be happening in the isolated private network.
 
 \lstset{
     caption={A basic network configuration used in the project. In this case, the IP address of the network is \textbf{192.168.4.0/30}.},
@@ -919,7 +936,7 @@ int main() {
 }
 \end{lstlisting}
 
-There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The dataflow diagram \todo{diagram} below shows what the whole process from receiving the request to sending a response looks like.
+There are two source files that deal with our server application: \verb|tcp_server| and \verb|request_process|. The former defines a TCP socket server using lwIP library, and the latter defines functions that process requests. The server waits for the connection. Once the connection is established and the server received a request, it extracts its \verb|opcode| and calls the corresponding function from \verb|request_process|. The generated response is then send back to the client.
 
 \section{Language parser}
 This section describes how the parser of the language, defined in \autoref{customLanguage}, works. Both lexical and syntax analysis of the input is done using regular expression in \verb|KeySeqvParser| class. I use groups in the regex pattern (as seen in \autoref{fig:regex}) to extract data from the input string.
@@ -955,7 +972,13 @@ First, the program cycles through the lines from the input file or \verb|STDIN|.
 }
 \end{algorithm}
 
-The class \verb|KeySeqv| contains information about a single key sequence. It is the same structure as a \verb|key_seqv_t| structure we can find on the Rubber Ducky system (see \autoref{thePayload}). The class also contains a \verb|to_bytes| method which converts the content of the object to a series of bytes that complies with the key sequence byte format described in \autoref{fig:key_sequence_format}. The whole parser module can be seen in \todo{uml diagram}.
+The class \verb|KeySeqv| contains information about a single key sequence. It is the same structure as a \verb|key_seqv_t| structure we can find on the Rubber Ducky system (see \autoref{thePayload}). The class also contains a \verb|to_bytes| method which converts the content of the object to a series of bytes that complies with the key sequence byte format described in \autoref{fig:key_sequence_format}. The whole parser module can be seen in \autoref{fig:rd_client_module}.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/rd_client_module.pdf}
+    \caption{RD Client module UML class diagram.}
+    \label{fig:rd_client_module}
+\end{figure}
 
 \section{Client application}
 There are two modes to run the client application:
@@ -963,7 +986,7 @@ There are two modes to run the client application:
     \item [CLI mode] is a CLI application that was made for creating static payloads. It converts the keystrokes written in Rubber Ducky language to a C source code. The user can use it to replace the existing \verb|rubber_ducky/keyseqv/key_seqv_script.c| file.
     \item [Network mode] is a CLI application that was made for updating the payload on the USB device wirelessly using sockets.
 \end{description}
-Both frontend applications classes (\verb|CliMode| and \verb|NetworkMode|) derive from that base class \verb|BaseMode| as seen in \todo{uml}. They both process the input script the same way by creating an instance of \verb|KeySeqvParser| class and feeding it with the input data as described in the previous section. What differentiate them apart is how they handle the processed data. \verb|CliMode| generates a new C source code file on the \verb|STDOUT| or output file if it was given. \verb|NetworkMode|, on the other hand, creates a TCP connection with the server and performs a series of requests where it sets the USB device to \emph{read-write} mode, sends \verb|PUSH_DATA| requests for each key sequence stored in \verb|KeySeqvParser|, set the device back to \emph{read-only} mode, and finish it off by sending a \verb|RUN_SEQUENCES| to start executing the payload. The \todo{diagram} shows the described steps.
+Both frontend applications classes (\verb|CliMode| and \verb|NetworkMode|) derive from that base class \verb|BaseMode| as seen in \autoref{fig:rd_client_module}. They both process the input script the same way by creating an instance of \verb|KeySeqvParser| class and feeding it with the input data as described in the previous section. What differentiate them apart is how they handle the processed data. \verb|CliMode| generates a new C source code file on the \verb|STDOUT| or output file if it was given. \verb|NetworkMode|, on the other hand, creates a TCP connection with the server and performs a series of requests where it sets the USB device to \emph{read-write} mode, sends \verb|PUSH_DATA| requests for each key sequence stored in \verb|KeySeqvParser|, set the device back to \emph{read-only} mode, and finish it off by sending a \verb|RUN_SEQUENCES| to start executing the payload. The \todo{diagram} shows the described steps.
 
 The user can choose what mode to run based on the given application parameters. \verb|-n/--network| flag will toggle the \emph{network mode}. Otherwise, a \emph{CLI mode} is run by default. All of this is handled in \verb|get_mode| function in \verb|utils.py| (shown in \autoref{lst:get_modes}). Lastly, the user can also toggle an option to generate logs by adding \verb|-v/--verbose| flag. That is handled using Python's standard \verb|logging| library.
 
@@ -1069,10 +1092,25 @@ Unfortunately, I was unable to locate the list of whitelisted devices to remove 
     \label{fig:kaspersky_report}
 \end{figure}
 
-Both programs were very effective against the keystrokes injection attacks. The USBGuard was more effective since the device has no real access to the system and all USB related attacks would have been suppressed (not only the keystrokes injection attack). The disadvantage of USBGuard is its not very intuitive control. \todo{no notification -> usbguard qt applet/usbguard notifier, the control is not user friendly -> knowledge of working in terminal is required}
+Both programs were very effective against the keystrokes injection attacks. The USBGuard was more effective since the device has no real access to the system and all USB related attacks would have been suppressed (not only the keystrokes injection attack). The disadvantage of USBGuard is its not very intuitive control. Most of the interaction are done using terminal since there is no official GUI application available. So unless the user is familiar with working with the command line, he/she cannot update a device policy\footnote{There used to be \texttt{usbguard-applet-qt} but this software is no longer supported. The latest project that provides a user-friendly notification pop-ups related to device presence update is \texttt{usbguard-notifier} (\url{https://github.com/Cropi/usbguard-notifier})}.
+
+Kaspersky on the other hand gives the users a user-friendly GUI application together with online documentation. Unfortunately I was able to break through the defense by sending the authentication PIN through WiFi. So if the attack has an access to the screen, he will gain the access to the victim's machine. Another weakness of Kaspersky application is that it only covers keystrokes injection attacks. Other types of attacks (such as network cards spoofing) will not be detected.
 
 
 \section{Another defense mechanism available}
+As stated in \autoref{maliciousPayloads}, most of the attacks requires an access to the terminal/command line. So another way to protect the host machine is by setting a password for running a command line as an administrator on Windows operating systems. All that is needed is to change the Windows registry\footnote{The instructions can be found here: \url{https://www.manageengine.com/device-control/badusb.html}}. The result can be seen in \autoref{fig:notifications}. As we can see before we updated the registry, it was fairly easy to open a terminal (or any other application) as an administrator as the only thing preventing us from doing so was a "Yes/No" confirmation buttons. But the new notification pop-up windows requires us to enter the user name and password (or any other type of authentication).
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.48\linewidth]{./obrazky-figures/basic_notification.PNG}
+    \includegraphics[width=0.48\linewidth]{./obrazky-figures/notification_with_authentication.jpg}
+    \caption{The "run as administrator" pop-up window before (on the left) and after (on the right) the registry value update.}
+    \label{fig:notifications}
+\end{figure}
+
+Another defense mechanism was presented in the work \cite{goodusb} by Tian and his team is called \textbf{GoodUSB} in 2015. They modified a Linux kernel module that maps USB devices to specific whitelisted drivers (for example an audio device such as headphones that is also registered as a Human Interface Device should only be able to execute a limited number of keys like \emph{Volume Up} and \emph{Volume Down}). Upon connecting the USB device to the computer the user is asked to identify the device's functionality. If the device is marked as malicious it is redirected to a virtualized USB honeypot where it can be monitored and analyzed. The GoodUSB architecture can be seen in \todo{goodusb architecture}.
+
+And last defense software that I will present here is \textbf{Cinch} which is a work by Sebastian Angel and his team from The University of Texas at Austin and New York University \cite{197175}.
+
 \todo{disable easy access to the command line}
 \todo{another defense software and mechanisms: GoodUSB, turning off firmware updates}
 
