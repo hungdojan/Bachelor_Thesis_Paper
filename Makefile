@@ -9,6 +9,9 @@ CO=projekt
 
 all: $(CO).pdf
 
+run:
+	podman run --rm -it -v .:/data blang/latex:latest make
+
 pdf: $(CO).pdf
 
 $(CO).ps: $(CO).dvi

@@ -33,12 +33,12 @@ Over the next 20 years, USB has been constantly upgraded. In April 2000 \textbf{
 
 Nowadays almost every device is equipped with some form of USB either for charging or data transfer. From smartphones and game consoles to microcontrollers and soldering iron. And there are currently 14 different types of USB connectors (some of them are shown in \autoref{fig:usb_connectors}, Type-C being the latest one introduced in December 2013.
 
-% \begin{figure}[ht]
-%     \centering
-%     \includegraphics{obrazky-figures/USB_2.0_and_3.0_connectors.png}
-%     \caption{List of mostly used USB connectors per generation}
-%     \label{fig:usb_connectors}
-% \end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics{./obrazky-figures/USB_connectors.png}
+    \caption{List of mostly used USB connectors per generation}
+    \label{fig:usb_connectors}
+\end{figure}
 
 \subsection*{Communication between Host and Device}
 \label{communication}
@@ -1034,7 +1034,7 @@ The chapter analyzes the payloads that can be installed on our USB device, speci
     \item create a communication tunnel by initializing a reverse shell.
 \end{itemize}
 
-The first on the list is \textbf{updating system's configuration}. The attacker can create a payload that would for example change the network settings (change the IP address of the DNS server), turn off the firewall, and disable antivirus or built-in hardware such as a touchpad or keyboard. The commands can be seen below in \todo{add commands}.
+The first on the list is \textbf{updating system's configuration}. The attacker can create a payload that would for example change the network settings like changing the IP address of DNS server to redirect request to attacker's location, turn off the firewall, and disable antivirus or built-in hardware such as a touchpad or keyboard. The commands can be seen below in \todo{add commands}.
 
 %\todo{reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f}
 
@@ -1087,7 +1087,7 @@ Kaspersky Endpoint Security program was next to be tested. Upon connecting the R
 Unfortunately, I was unable to locate the list of whitelisted devices to remove it from the list. Once the device was whitelisted it did successfully execute the payload just like on the previous test with USBGuard. But interestingly, unlike USBGuard, Kaspersky application did blocked all other ports including those within the same hub. And it also registered the change of firmware when MSC class was enabled. In \autoref{fig:kaspersky_report} you can see the reports of the program.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\linewidth]{./obrazky-figures/kaspersky_report.PNG}
+    \includegraphics[width=0.9\linewidth]{./obrazky-figures/kaspersky_report.PNG}
     \caption{The Kaspersky Endpoint Security reports of the test. The reports are are sorted from the newest to the oldest. We can see that the first connection (at 8:02 PM) was blocked, then I authorized the device (8:12 PM), tried a different port (8:24 PM) and lastly plugged the device with an updated firmware into the first port (8:41 PM).}
     \label{fig:kaspersky_report}
 \end{figure}
@@ -1097,24 +1097,36 @@ Both programs were very effective against the keystrokes injection attacks. The 
 Kaspersky on the other hand gives the users a user-friendly GUI application together with online documentation. Unfortunately I was able to break through the defense by sending the authentication PIN through WiFi. So if the attack has an access to the screen, he will gain the access to the victim's machine. Another weakness of Kaspersky application is that it only covers keystrokes injection attacks. Other types of attacks (such as network cards spoofing) will not be detected.
 
 
-\section{Another defense mechanism available}
-As stated in \autoref{maliciousPayloads}, most of the attacks requires an access to the terminal/command line. So another way to protect the host machine is by setting a password for running a command line as an administrator on Windows operating systems. All that is needed is to change the Windows registry\footnote{The instructions can be found here: \url{https://www.manageengine.com/device-control/badusb.html}}. The result can be seen in \autoref{fig:notifications}. As we can see before we updated the registry, it was fairly easy to open a terminal (or any other application) as an administrator as the only thing preventing us from doing so was a "Yes/No" confirmation buttons. But the new notification pop-up windows requires us to enter the user name and password (or any other type of authentication).
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.48\linewidth]{./obrazky-figures/basic_notification.PNG}
-    \includegraphics[width=0.48\linewidth]{./obrazky-figures/notification_with_authentication.jpg}
+    \includegraphics[width=0.4\linewidth]{./obrazky-figures/basic_notification.PNG}
+    \includegraphics[width=0.4\linewidth]{./obrazky-figures/notification_with_authentication.jpg}
     \caption{The "run as administrator" pop-up window before (on the left) and after (on the right) the registry value update.}
     \label{fig:notifications}
 \end{figure}
 
-Another defense mechanism was presented in the work \cite{goodusb} by Tian and his team is called \textbf{GoodUSB} in 2015. They modified a Linux kernel module that maps USB devices to specific whitelisted drivers (for example an audio device such as headphones that is also registered as a Human Interface Device should only be able to execute a limited number of keys like \emph{Volume Up} and \emph{Volume Down}). Upon connecting the USB device to the computer the user is asked to identify the device's functionality. If the device is marked as malicious it is redirected to a virtualized USB honeypot where it can be monitored and analyzed. The GoodUSB architecture can be seen in \todo{goodusb architecture}.
+\section{Another defense mechanism available}
+As stated in \autoref{maliciousPayloads}, most of the attacks requires an access to the terminal/command line. So another way to protect the host machine is by setting a password for running a command line as an administrator on Windows operating systems. All that is needed is to change the Windows registry\footnote{The instructions can be found here: \url{https://www.manageengine.com/device-control/badusb.html}}. The result can be seen in \autoref{fig:notifications}. As we can see before we updated the registry, it was fairly easy to open a terminal (or any other application) as an administrator as the only thing preventing us from doing so was a "Yes/No" confirmation buttons. But the new notification pop-up windows requires us to enter the user name and password (or any other type of authentication).
 
-And last defense software that I will present here is \textbf{Cinch} which is a work by Sebastian Angel and his team from The University of Texas at Austin and New York University \cite{197175}.
+Another defense mechanism was presented in the work \cite{goodusb} by Tian and his team is called \textbf{GoodUSB} in 2015. They modified a Linux kernel module that maps USB devices to specific whitelisted drivers (for example an audio device such as headphones that is also registered as a Human Interface Device should only be able to execute a limited number of keys like \emph{Volume Up} and \emph{Volume Down}). Then they introduced a GoodUSB service (called gud) which sits in between the host controller and USB drivers. Upon connecting the USB device to the computer the user is asked to identify the device's functionality. If the device is marked as malicious GoodUSB service will redirected it to a virtualized USB honeypot where it can be monitored and analyzed. Otherwise, a driver will be loaded. The GoodUSB architecture can be seen in \autoref{fig:defense_mechanism_architectures}.
 
-\todo{disable easy access to the command line}
-\todo{another defense software and mechanisms: GoodUSB, turning off firmware updates}
+And last defense software that I will present here is \textbf{Cinch} which is a work by Sebastian Angel and his team from The University of Texas at Austin and New York University \cite{197175}. Their approach to USB attacks is to create a mediator between a hardware layer host controller and software layer HCI\footnote{Host Controller Interface, of HCI, is a register-level interface that enables a host controller for USB or IEEE 1394 hardware to communicate with a host controller driver in software. Link to the article: \url{https://en.wikipedia.org/wiki/Host_controller_interface_(USB,_Firewire)}}. The USB data are then transferred through a narrow choke point where it can be analyzed. The Cinch architecture can be seen in \autoref{fig:defense_mechanism_architectures}. Cinch uses I/O virtualization hardware to redirect \emph{direct memory access} and interrupts to a red virtual machine. The virtual machine then encapsulates and sends USB transfers through the Tunnel to another virtual machine (called Gateway) where it applies all security policies. Once finish, the USB transfer is then sent to the host's HCI (blue machine). 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\linewidth]{./obrazky-figures/cinch_arch.png}
+    \includegraphics[width=0.4\linewidth]{./obrazky-figures/goodusb_arch.png}
+    \caption{Cinch (left) and GoodUSB (right) architecture designs side by side. Both of these pictures were taken from their corresponding papers.}
+    \label{fig:defense_mechanism_architectures}
+\end{figure}
 
-\todo{my approach: upon plugging the device change the keyboard layout}
+Other defense concepts are:
+\begin{itemize}
+    \item block the USB device when it starts typing with inhuman speed \cite{KerschbaumFlorian2018UBUK},
+    \item disable firmware updates,
+    \item disable USB drivers on host machine,
+    \item and many more...
+\end{itemize}
+There is one concept which occurred me while I was writing this thesis and it is related to \autoref{customLanguage}. The notion here is that the majority of keystrokes injection payloads rely on the standard US QWERTY keyboard. So, if the operating system changes the keyboard layout, for example, to CZ DVORAK after connecting in a keyboard device, the payload will not be able to properly execute the payload because each key is mapped to a different output than on QWERTY. Of course, this is only a concept that has yet to be implemented. FuIt is also very insufficient since the attack will be successfully executed if the attacker guesses the keyboard layout that is set. Furthermore, it is insufficient because the attack will be successful if the attacker knows the keyboard layout that is set. And keyboard layouts only change printable keys, thus the attack will remain unchanged if the payload simply consists of modifier and non-printable keys (for example using \verb|Enter|, \verb|Tab| and arrow keys).
 
 \chapter{Conclusion}
 \label{conclusion}
