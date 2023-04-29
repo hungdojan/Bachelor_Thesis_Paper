@@ -1025,8 +1025,7 @@ This section describes I will briefly evaluate my implementation of the Rubber D
     \label{fig:device_manager_all}
 \end{figure}
 
-The algorithm for generating the payload is designed to produce as few key sequences as possible (if it is possible then it will send 6 keys at once). Based on the \verb|KEYPRESS_DELAY_MS| constant, we can test how fast and accurate can the device type. This was tested on \textbf{Monkeytype} web application\footnote{Link to the web page: \url{https://monkeytype.com/}} since it gives us an opportunity to easily set a custom text. We tested two payloads: the first payload contains a standard 3 paragraphs long lorem ipsum text (2884 characters) and the second payload contains a randomized list of printable ASCII characters (2800 characters)\footnote{Both payloads can be found here: \todo{url to them}}. The mass storage class was disable during the testing. The \autoref{tab:typing_test} below shows an average typing speed of 20 tests.
-\todo{https://github.com/lemnos/tt}
+The algorithm for generating the payload is designed to produce as few key sequences as possible (if it is possible then it will send 6 keys at once). Based on the \verb|KEYPRESS_DELAY_MS| constant, we can test how fast and accurate can the device type. This was tested on \textbf{tt} TUI application\footnote{Link to the web page: \url{https://github.com/lemnos/tt}}. We tested two payloads: the first payload contains a standard 3 paragraphs long lorem ipsum text (2884 characters) and the second payload contains a randomized list of printable ASCII characters (2800 characters)\footnote{Both payloads can be found here: \todo{url to them}}. The mass storage class was disable during the testing. The \autoref{tab:typing_test} below shows an average typing speed of 20 tests.
 \begin{table}[ht]
     \centering
     \begin{tabular}{|c|c|c|c|c|} \hline
@@ -1036,13 +1035,13 @@ The algorithm for generating the payload is designed to produce as few key seque
                                                    10 &           -- &                -- &           -- &               --  \\ \hline
                                                    20 &           -- &                -- &           -- &               --  \\ \hline
                                                    50 &           -- &                -- &           -- &               --  \\ \hline
-                                                  100 &           -- &                -- &           -- &               --  \\ \hline
+                                                   80 &           -- &                -- &           -- &               --  \\ \hline
     \end{tabular}
     \caption{Typing speed based on the \texttt{KEYPRESS\_DELAY\_MS} constant value. Testing was conducted on \texttt{Fedora Linux 36 (Thirty Six); kernel 6.2.9}.}
     \label{tab:typing_test}
 \end{table}
 
-Lastly, we tested
+Lastly, we evaluate how accurate the delay feature of our device is. We use \verb|time| program, which is available on most Linux operating systems. Our device executes a \verb|time sleep 10| command in the shell, waits 2 seconds, and then terminate \verb|sleep| command with \verb|Ctrl+C| key shortcut. The time result is then appended to the output file. We repeat the test 20 times and average the results. What we ended up with is a rough estimate of our wait time.
 
 \chapter{Malicious payloads}
 \label{maliciousPayloads}
