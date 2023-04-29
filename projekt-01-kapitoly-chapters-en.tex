@@ -1,11 +1,11 @@
 \chapter{Introduction}
 Universal Serial Bus (USB) is the most widely-used connector for modern computer systems. It allows various devices to connect to the computer. The USB has replaced many older interfaces, such as parallel and serial ports, and has become the standard for connecting devices such as keyboards, mice, printers, and storage devices to computers. The main selling point of the USB interface was the introduction of "plug-and-play" feature which removes the need for the users to configure the device. Upon connecting the device to the computer, the system automatically recognizes the device and immediately assigns appropriate drivers.
 
-Unfortunately, as the popularity of the interface rose, new types of malicious attacks against USB started to appear. In 2014, a group of researchers from Security Research Labs announced a new type of USB malware called BadUSB. They demoed a USB device with patched firmware that could spoof a keyboard, network card, and even a display. And this type of malware is undetectable by conventional antivirus programs.
+Unfortunately, as the popularity of the interface grew, new types of malicious attacks against USB began to emerge. In 2014, a group of researchers from Security Research Labs announced a new type of USB malware called BadUSB. They demonstrated a USB device with modified firmware that could spoof a keyboard, network card, and even a display. And this type of malware is undetectable by conventional antivirus programs.
 
-The main focus of this work is to design and implement this type of device on the Raspberry Pi Pico board and analyze what the final product is capable of. There are multiple defense mechanisms that have been created since the introduction of the malware. So I tested my device on some of them to see how it held against some of them.
+The main focus of this work is to design and implement this type of device on the Raspberry Pi Pico board, as well as to evaluate what the finished product is capable of. There are numerous defense mechanisms that have been created since the introduction of the malware. So I put my device to the test against several of them to see how it performed.
 
-The aim of this thesis is to warn \todo{to warn people that this malware exists by making it cheap and for automation and stuff}.
+The aim of this thesis is to provide readers with an overview of the BadUSB attack security issue so that they can better understand what makes them so dangerous, how they work and how to defend against them. My implementation therefore gives readers a low-cost and simple means to experiment with BadUSB device.
 
 \chapter{Universal Serial Bus}
 \label{usb}
@@ -1015,13 +1015,34 @@ def get_mode() -> BaseMode:
 \section{Summary}
 The diagram below \todo{add diagram} summarizes how the Rubber Ducky and client application work.
 
-\chapter{Rubber Ducky capabilities}
-\label{practicalTest}
-In this section, I am going to talk about how I tested my implementation of the Rubber Ducky device. The testing can be divided into three phases: before the implementation of the parser, after the implementation of the parser, and after the implementation of the WiFi module.
+\chapter{Implementation evaluation}
+\label{capabilities}
+This section describes I will briefly evaluate my implementation of the Rubber Ducky device. When we connect our device to the machine the operating system immediately recognizes it as a composite device and the file system is correctly mounted (shows both "Automata.txt" and hidden ".README.md" files). We can check it by opening Device Manager on Windows (or running \verb|lsusb| command on Linux systems). The Vendor ID and Product ID of the device can be seen in \autoref{fig:device_manager_all}. Both values corresponds to the values specified in \verb|usb_descriptors.c| source file.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\linewidth]{./obrazky-figures/device_manager_all.png}
+    \caption{Composite device info in Device Manager. \texttt{0xD0D0} value for Vendor ID and \texttt{0xCAFE} value for Product ID.}
+    \label{fig:device_manager_all}
+\end{figure}
 
-\todo{do i need this chapter??}
-\todo{fast typing}
-\todo{pretty accurate timing}
+The algorithm for generating the payload is designed to produce as few key sequences as possible (if it is possible then it will send 6 keys at once). Based on the \verb|KEYPRESS_DELAY_MS| constant, we can test how fast and accurate can the device type. This was tested on \textbf{Monkeytype} web application\footnote{Link to the web page: \url{https://monkeytype.com/}} since it gives us an opportunity to easily set a custom text. We tested two payloads: the first payload contains a standard 3 paragraphs long lorem ipsum text (2884 characters) and the second payload contains a randomized list of printable ASCII characters (2800 characters)\footnote{Both payloads can be found here: \todo{url to them}}. The mass storage class was disable during the testing. The \autoref{tab:typing_test} below shows an average typing speed of 20 tests.
+\todo{https://github.com/lemnos/tt}
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|} \hline
+        \multirow{2}{*}{\texttt{KEYPRESS\_DELAY\_MS}} & \multicolumn{2}{|c|}{\textbf{Lorem Ipsum}} & \multicolumn{2}{|c|}{\textbf{Randomized text}} \\ \cline{2-5}
+                                                      & \textbf{WPM} & \textbf{Accuracy} & \textbf{WPM} & \textbf{Accuracy} \\ \hline
+                                                    0 &           -- &                -- &           -- &               --  \\ \hline
+                                                   10 &           -- &                -- &           -- &               --  \\ \hline
+                                                   20 &           -- &                -- &           -- &               --  \\ \hline
+                                                   50 &           -- &                -- &           -- &               --  \\ \hline
+                                                  100 &           -- &                -- &           -- &               --  \\ \hline
+    \end{tabular}
+    \caption{Typing speed based on the \texttt{KEYPRESS\_DELAY\_MS} constant value. Testing was conducted on \texttt{Fedora Linux 36 (Thirty Six); kernel 6.2.9}.}
+    \label{tab:typing_test}
+\end{table}
+
+Lastly, we tested
 
 \chapter{Malicious payloads}
 \label{maliciousPayloads}
@@ -1046,7 +1067,7 @@ The attack can also force Blue Screen of Death or perform Ping of Death.
 
 \chapter{Testing defense mechanisms}
 \label{defense}
-At the time of writing this thesis, there are many available defense software on the internet. In this section, I describe how some of them work and whether my device was able to break through any of them or not. I used free open-source program USBGuard on GNU/Linux and Kaspersky Endpoint Security program on Windows 10.
+At the time of writing this thesis, there are many available defensive software on the internet. In this section, I describe how some of them work and whether my device was successful in breaking pass any of them. I used free open-source program USBGuard on GNU/Linux and Kaspersky Endpoint Security program on Windows 10.
 
 \section{Selected programs}
 \textbf{USBGuard}\footnote{\url{https://github.com/USBGuard/usbguard}} is a software framework for implementing USB device authorization policies. It was developed in 2015 and has been manage by Red Hat Inc. since then. It consists of two main programs: \verb|usbguard-daemon| and \verb|usbguard|. The former is a service that runs in the background and applies USBGuard policies to each USB device. The behavior of the service can be configured by editing \verb|usbguard-daemon.conf|. The latter is a command line interface that provides the user with a tool to update the USBGuard policies.
@@ -1110,7 +1131,7 @@ As stated in \autoref{maliciousPayloads}, most of the attacks requires an access
 
 Another defense mechanism was presented in the work \cite{goodusb} by Tian and his team is called \textbf{GoodUSB} in 2015. They modified a Linux kernel module that maps USB devices to specific whitelisted drivers (for example an audio device such as headphones that is also registered as a Human Interface Device should only be able to execute a limited number of keys like \emph{Volume Up} and \emph{Volume Down}). Then they introduced a GoodUSB service (called gud) which sits in between the host controller and USB drivers. Upon connecting the USB device to the computer the user is asked to identify the device's functionality. If the device is marked as malicious GoodUSB service will redirected it to a virtualized USB honeypot where it can be monitored and analyzed. Otherwise, a driver will be loaded. The GoodUSB architecture can be seen in \autoref{fig:defense_mechanism_architectures}.
 
-And last defense software that I will present here is \textbf{Cinch} which is a work by Sebastian Angel and his team from The University of Texas at Austin and New York University \cite{197175}. Their approach to USB attacks is to create a mediator between a hardware layer host controller and software layer HCI\footnote{Host Controller Interface, of HCI, is a register-level interface that enables a host controller for USB or IEEE 1394 hardware to communicate with a host controller driver in software. Link to the article: \url{https://en.wikipedia.org/wiki/Host_controller_interface_(USB,_Firewire)}}. The USB data are then transferred through a narrow choke point where it can be analyzed. The Cinch architecture can be seen in \autoref{fig:defense_mechanism_architectures}. Cinch uses I/O virtualization hardware to redirect \emph{direct memory access} and interrupts to a red virtual machine. The virtual machine then encapsulates and sends USB transfers through the Tunnel to another virtual machine (called Gateway) where it applies all security policies. Once finish, the USB transfer is then sent to the host's HCI (blue machine). 
+And last defense software that I will present here is \textbf{Cinch} which is a work by Sebastian Angel and his team from The University of Texas at Austin and New York University \cite{197175}. Their approach to USB attacks is to create a mediator between a hardware layer host controller and software layer HCI\footnote{Host Controller Interface, of HCI, is a register-level interface that enables a host controller for USB or IEEE 1394 hardware to communicate with a host controller driver in software. Link to the article: \url{https://en.wikipedia.org/wiki/Host_controller_interface_(USB,_Firewire)}}. The USB data are then transferred through a narrow choke point where it can be analyzed. The Cinch architecture can be seen in \autoref{fig:defense_mechanism_architectures}. Cinch uses I/O virtualization hardware to redirect \emph{direct memory access} and interrupts to a red virtual machine. The virtual machine then encapsulates and sends USB transfers through the Tunnel to another virtual machine (called Gateway) where it applies all security policies. Once finish, the USB transfer is then sent to the host's HCI (blue machine).
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.4\linewidth]{./obrazky-figures/cinch_arch.png}
