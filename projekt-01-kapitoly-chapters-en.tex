@@ -1025,40 +1025,45 @@ This section describes I will briefly evaluate my implementation of the Rubber D
     \label{fig:device_manager_all}
 \end{figure}
 
-The algorithm for generating the payload is designed to produce as few key sequences as possible (if it is possible then it will send 6 keys at once). Based on the \verb|KEYPRESS_DELAY_MS| constant, we can test how fast and accurate can the device type. This was tested on \textbf{tt} TUI application\footnote{Link to the web page: \url{https://github.com/lemnos/tt}}. We tested two payloads: the first payload contains a standard 3 paragraphs long lorem ipsum text (2884 characters) and the second payload contains a randomized list of printable ASCII characters (2800 characters)\footnote{Both payloads can be found here: \todo{url to them}}. The mass storage class was disable during the testing. The \autoref{tab:typing_test} below shows an average typing speed of 20 tests.
+The algorithm used to generate the payload is designed to produce as few key sequences as possible (if possible, it will send 6 keys at once). Based on the \verb|KEYPRESS_DELAY_MS| constant, we can test how fast and accurate can the device type. This was tested using the TUI application \verb|tt|\footnote{Link to the web page: \url{https://github.com/lemnos/tt}}. We prepared two test payloads: one with a regular 3 paragraphs long Lorem Ipsum text (2884 characters) and the other with a randomized list of printable ASCII characters (2800 characters)\footnote{Both payloads can be found here: \todo{url to them}}. The mass storage was disable for this test case. The \autoref{tab:typing_test} below shows an average typing speed of 20 tests.
 \begin{table}[ht]
     \centering
     \begin{tabular}{|c|c|c|c|c|} \hline
         \multirow{2}{*}{\texttt{KEYPRESS\_DELAY\_MS}} & \multicolumn{2}{|c|}{\textbf{Lorem Ipsum}} & \multicolumn{2}{|c|}{\textbf{Randomized text}} \\ \cline{2-5}
-                                                      & \textbf{WPM} & \textbf{Accuracy} & \textbf{WPM} & \textbf{Accuracy} \\ \hline
-                                                    0 &           -- &                -- &           -- &               --  \\ \hline
-                                                   10 &           -- &                -- &           -- &               --  \\ \hline
-                                                   20 &           -- &                -- &           -- &               --  \\ \hline
-                                                   50 &           -- &                -- &           -- &               --  \\ \hline
-                                                   80 &           -- &                -- &           -- &               --  \\ \hline
+                                                      & \textbf{WPM} &           \textbf{Accuracy} & \textbf{WPM} &               \textbf{Accuracy} \\ \hline
+                                                    0 &       6590.8 &                   99.719 \% &      2625.05 &                      93.607 \%  \\ \hline
+                                                   10 &       2641.1 &                   99.957 \% &       1128.5 &                     99.6285 \%  \\ \hline
+                                                   20 &       1321.5 &                   99.981 \% &        566.1 &                      99.942 \%  \\ \hline
+                                                   50 &       528.95 &                  99.9985 \% &          226 &                         100 \%  \\ \hline
+                                                   80 &       329.95 &                      100 \% &          141 &                         100 \%  \\ \hline
     \end{tabular}
-    \caption{Typing speed based on the \texttt{KEYPRESS\_DELAY\_MS} constant value. Testing was conducted on \texttt{Fedora Linux 36 (Thirty Six); kernel 6.2.9}.}
+    \caption{Typing speed based on the \texttt{KEYPRESS\_DELAY\_MS} constant value. Testing was conducted on \texttt{Fedora Linux 36 (Thirty Six); kernel 6.2.9} operating system with AMD Ryzen 7 4700U process and 16GB of RAM.}
     \label{tab:typing_test}
 \end{table}
+We can see that the device's accuracy decreases at it types faster. Our Rubber Ducky device struggled a lot on Fedora system when executing the randomized text at the highest speed, with an average accuracy of less then 94 \%. The device made most of the mistakes when the Shift key modifier was not properly turned on or off. The table also shows that that randomized text slowed typing speed by approximately 2.3 times.
 
-Lastly, we evaluate how accurate the delay feature of our device is. We use \verb|time| program, which is available on most Linux operating systems. Our device executes a \verb|time sleep 10| command in the shell, waits 2 seconds, and then terminate \verb|sleep| command with \verb|Ctrl+C| key shortcut. The time result is then appended to the output file. We repeat the test 20 times and average the results. What we ended up with is a rough estimate of our wait time.
+Lastly, we evaluate how accurate the delay feature of our device is. We use \verb|time| program, which is available on most Linux operating systems. Our device executes a \verb|time sleep 10| command in the shell, waits 2 seconds, and then terminate \verb|sleep| command with \verb|Ctrl+C| key shortcut. The time result is then appended to the output file. We repeat the test 20 times and average the results. What we ended up with is a rough estimate of our wait time. According to the result, the average time between starting and terminating the \verb|sleep| program was 2.02s. We can declare that the wait time of our device is accurate to 2 hundredths of a second.
 
 \chapter{Malicious payloads}
 \label{maliciousPayloads}
-The chapter analyzes the payloads that can be installed on our USB device, specifically the ones that were designed to cause some damage on the victim's machine. Most of the attacks require access to the command line application (or terminal). Once the access has been granted, the attacker can execute one of these four actions:
+The chapter analyzes types of payloads that can be installed on our USB device, specifically the ones that were designed to cause some damage on the victim's machine. Most of the attacks require access to the command line application (or terminal). Here are a few example of payload's notion once the access to the command line has been granted:
 
 \begin{itemize}
-    \item update system's configuration,
+    \item update victim's system configuration,
     \item download and execute a malicious script from the internet or stored inside the connected device,
-    \item perform a DOS attack with ping or BSoD (Blue Screen of Death),
-    \item create a communication tunnel by initializing a reverse shell.
+    \item perform a Denial of Service or BSoD (Blue Screen of Death),
+    \item open a fake website to capture victim's username and password,
+    \item create a communication backdoor by initializing a reverse shell.
 \end{itemize}
 
-The first on the list is \textbf{updating system's configuration}. The attacker can create a payload that would for example change the network settings like changing the IP address of DNS server to redirect request to attacker's location, turn off the firewall, and disable antivirus or built-in hardware such as a touchpad or keyboard. The commands can be seen below in \todo{add commands}.
+The first on the list is \textbf{updating system configuration}. The attacker can create a payload that would for example change the network settings like changing the IP address of DNS server to redirect request to attacker's location, disable an anti-virus program, firewall, or built-in hardware such as a touchpad or keyboard.
 
-%\todo{reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f}
+Another possible attack is to simply download a malware from the internet and run in on the victim's computer (or run it from the mass storage). An example can be keylogger software. \textbf{Keylogger} is a program which run in the background and its task is to capture anything the user type with its keyboard. The captured keystrokes can be uploaded to the remote server controlled by the attacker. The attack can then analyze received data and extract user's login credentials. Keyloggers can be either software program or physical device (for example KeyGrabber\footnote{\url{https://www.keelog.com/keygrabber-keylogger/}}).
 
-Another possible attack \todo{it can download and run a malicious script from the internet or on the storage }
+\todo{https://www.bleepingcomputer.com/news/security/fbi-hackers-use-badusb-to-target-defense-firms-with-ransomware/}
+
+The attack can also create a payload which would perform a \textbf{Denial of Service} attack or execute a \textbf{Blue screen of Death} or \textbf{kernel panic}.
+
 
 The attack can also force Blue Screen of Death or perform Ping of Death.
 
@@ -1141,9 +1146,10 @@ And last defense software that I will present here is \textbf{Cinch} which is a 
 
 Other defense concepts are:
 \begin{itemize}
-    \item block the USB device when it starts typing with inhuman speed \cite{KerschbaumFlorian2018UBUK},
+    \item block the USB device when it starts typing with inhuman speed \cite{KerschbaumFlorian2018UBUK}, \cite{arghire_2020},
     \item disable firmware updates,
     \item disable USB drivers on host machine,
+    \item hardware USB data blocker (also known as "USB condom")\cite{al-sibai_2023}
     \item and many more...
 \end{itemize}
 There is one concept which occurred me while I was writing this thesis and it is related to \autoref{customLanguage}. The notion here is that the majority of keystrokes injection payloads rely on the standard US QWERTY keyboard. So, if the operating system changes the keyboard layout, for example, to CZ DVORAK after connecting in a keyboard device, the payload will not be able to properly execute the payload because each key is mapped to a different output than on QWERTY. Of course, this is only a concept that has yet to be implemented. FuIt is also very insufficient since the attack will be successfully executed if the attacker guesses the keyboard layout that is set. Furthermore, it is insufficient because the attack will be successful if the attacker knows the keyboard layout that is set. And keyboard layouts only change printable keys, thus the attack will remain unchanged if the payload simply consists of modifier and non-printable keys (for example using \verb|Enter|, \verb|Tab| and arrow keys).
