@@ -10,6 +10,7 @@ The aim of this thesis is to provide readers with an overview of the BadUSB atta
 \chapter{Universal Serial Bus}
 \label{usb}
 \todo{rewrite this chapter}
+\todo{history}
 Universal Serial Bus (also known as USB) is a peripheral interface used to connect external devices to computers. It defines the specifications of cables, sets of protocols, the speed of data exchange, and the way the host and device communicate with each other. Not only that, but it can also send power to devices (for example to charge smartphones).
 
 Before the invention of the USB peripheral, there exists countless kinds of ports in any shape and size. In the past, every peripheral has its shaped connector, a protocol through which it communicated with the computer, and a limited number of devices it can run at once. And that brings many disadvantages.
@@ -353,7 +354,7 @@ We can divide items based on the scope of usage: Main, Global, or Local. Items i
 
 Main scope defines five items: Input, Output, and Feature data items defining the content of a report. Collection and End Collection starts and ends the group. Input items apply to data that is sent from the device to the host. The host uses IN interrupt or Get\_Report request to request Input reports. Output items apply to data that the host sends to the device. They usually change the internal state of the device. For example, to vibrate a game controller during a fight in a game. The host uses OUT interrupt or Set\_Report request to send an Output report. Feature items apply to data that the host sends to the device. But it's not necessary and they can be used the other way around as well. Feature reports update the internal configuration settings of a device that affect the overall behavior of the device. For example, to turn on and off an LED on the keyboard. The host uses both Get\_Report and Set\_Report requests to send/retrieve Feature reports.
 
-Global scope features twelve items which can be seen in \autoref{tab:global_items}. Usage Page specifies the function that the device performs. The HID Usage Table document lists the defined Usage Pages with their values and names. Usage Page are combined with Usage to identify the type of device. For example, Usage Page of \verb|0x01| and Usage of \verb|0x06| tell the host that the given report descriptor sends a keyboard report. Logical and Physical values define what values can report hold. Physical values are used with Units. Unit tag just specifies the unit of the data (time, mass, current. e. g.). It uses the SI (International System of Units) table. Report Size tells the host how many bits are used to encode the data into the report. Report Count tells how many fields will be sent.
+Global scope features twelve items which can be seen in \autoref{tab:global_items}. Usage Page specifies the function that the device performs. The HID Usage Table document lists the defined Usage Pages with their values and names. Usage Page are combined with Usage to identify the type of device. For example, Usage Page of \verb|0x01| and Usage of \verb|0x06| tell the host that the given report descriptor sends a keyboard report. Logical and Physical values define what values can report hold. Physical values are used with Units. Unit tag just specifies the unit of the data (time, mass, current. e.g.). It uses the SI (International System of Units) table. Report Size tells the host how many bits are used to encode the data into the report. Report Count tells how many fields will be sent.
 
 \begin{table}[ht]
     \centering
@@ -380,6 +381,8 @@ Local items specify the qualities of the controls and data items in a report. Th
 \chapter{BadUSB}
 \label{badusb}
 \todo{rewrite this chapter}
+
+\todo{what it is, first appearance, rubber ducky, teensy, badandroid, badbios, other devices, badusb-c}
 
 BadUSB is a computer security attack that targets peripherals that use USB interfaces. Unlike the usual USB flash disk attacks where the drivers contain harmful files, BadUSB attacks are immune against antivirus programs since the actual code is stored in an inaccessible section of memory. The notion of the attack is to infect the firmware of the USB device. From keyboards and mice to smartphones, if the firmware is reprogrammable then the device is likely exploitable. In 2014 approximately 50 \% of USB microcontrollers  were pruned to this kind of infection.
 
@@ -1018,7 +1021,7 @@ def get_mode() -> BaseMode:
 The diagram below \todo{add diagram} summarizes how the Rubber Ducky and client application work.
 
 \chapter{Implementation evaluation}
-\label{capabilities}
+\label{evaluation}
 In this section describes I will briefly evaluate my implementation of the Rubber Ducky device. When we connect our device to the machine the operating system immediately recognizes it as a composite device and the file system is correctly mounted (shows both "Automata.txt" and hidden ".README.md" files). We can check it by opening Device Manager on Windows (or running \verb|lsusb| command on Linux systems). The Vendor ID and Product ID of the device can be seen in \autoref{fig:device_manager_all}. Both values correspond to the values specified in \verb|usb_descriptors.c| source file.
 \begin{figure}[ht]
     \centering
@@ -1044,7 +1047,9 @@ The algorithm used to generate the payload is designed to produce as few key seq
 \end{table}
 We can see that the device's accuracy decreases as it types faster. Our Rubber Ducky device struggled a lot on Fedora system when executing the randomized text at the highest speed, with an average accuracy of less than 94 \%. The device made most of the mistakes when the Shift key modifier was not properly turned on or off. The table also shows that randomized text slowed typing speed by approximately 2.3 times.
 
-Lastly, we evaluate how accurate the delay feature of our device is. We use \verb|time| program, which is available on most Linux operating systems. Our device executes a \verb|time sleep 10| command in the shell, waits 2 seconds, and then terminates \verb|sleep| command with \verb|Ctrl+C| key shortcut. The time result is then appended to the output file. We repeat the test 20 times and average the results. What we ended up with is a rough estimate of our wait time. According to the result, the average time between starting and terminating the \verb|sleep| program was 2.02s. We can declare that the wait time of our device is accurate to 2 hundredths of a second.
+Next, we evaluate how accurate the delay feature of our device is. We use \verb|time| program, which is available on most Linux operating systems. Our device executes a \verb|time sleep 10| command in the shell, waits 2 seconds, and then terminates \verb|sleep| command with \verb|Ctrl+C| key shortcut. The time result is then appended to the output file. We repeat the test 20 times and average the results. What we ended up with is a rough estimate of our wait time. According to the result, the average time between starting and terminating the \verb|sleep| program was 2.02s. We can declare that the wait time of our device is accurate to 2 hundredths of a second.
+
+Lastly, we tried to write a payload which would control a GUI application. We chose a racing game \textbf{Trackmania}\footnote{Link to official homepage: \url{https://www.ubisoft.com/en-gb/game/trackmania/trackmania}}, which is free to play and most importantly deterministic. \todo{finish this}
 
 \chapter{Malicious payloads}
 \label{maliciousPayloads}
@@ -1052,24 +1057,20 @@ The chapter analyzes the types of payloads that can be installed on our USB devi
 
 \begin{itemize}
     \item update victim's system configuration,
-    \item download and execute a malicious script from the internet or stored inside the connected device,
+    \item download and execute a malicious script from the internet or stored inside the connected device to retrieve sensitive information,
     \item perform a Denial of Service or BSoD (Blue Screen of Death),
-    \item open a fake website to capture the victim's username and password,
     \item create a communication backdoor by initializing a reverse shell.
 \end{itemize}
 
-The first on the list is \textbf{updating system configuration}. The attacker can create a payload that would for example change the network settings like changing the IP address of DNS server to redirect the requests to the attacker's location, disable an anti-virus program, firewall, or built-in hardware such as a touchpad or keyboard.
+The first item on the list is \textbf{updating system configuration}. The attacker can write a payload that for example changes the network settings, such as changing the IP address of DNS server to redirect the requests to the attacker's server, create a new symlink or alias of a command (for example \verb|alias sudo="sudo rm -rf /; sudo| which will, without the user's knowledge, delete the root directory when \verb|sudo| command is called), disable an antivirus program, firewall, or built-in hardware such as a touchpad or keyboard.
 
-Another possible attack is to simply download malware from the internet and run it on the victim's computer (or run it from the mass storage). An example can be keylogger software. \textbf{Keylogger} is a program that runs in the background and its task is to capture anything the user type with its keyboard. The captured keystrokes can be uploaded to the remote server controlled by the attacker. The attack can then analyze received data and extract user's login credentials. Keylogger can be either a software program or a physical device (for example KeyGrabber\footnote{\url{https://www.keelog.com/keygrabber-keylogger/}}).
+Another possible attack is to download malware from the internet and run it on the victim's computer (or from the mass storage). Keylogger software is one of the example. \textbf{Keylogger} is an application that runs in the background and captures anything the user types on the keyboard. The collected keystrokes can be uploaded to the remote server controlled by the attacker. The attacker can then examine the sent data and extract user's login credentials. This type of attack is called \textbf{Data exfiltration} \-- a form of attack that involves transferring unauthorized data from a computer. A keylogger can be a software program or a physical device (for example KeyGrabber\footnote{\url{https://www.keelog.com/keygrabber-keylogger/}}).
 
-\todo{https://www.bleepingcomputer.com/news/security/fbi-hackers-use-badusb-to-target-defense-firms-with-ransomware/}
+The attacker can also write a payload that will perform a \textbf{Denial of Service} attack or force a \textbf{Blue screen of Death} or \textbf{kernel panic}. The former attack, Denial of Service, is an attack that is associated with network security. Its aim is to prevent access to a service or resources \cite{2008Ericson}. One kind of such attack is known as \textbf{Ping of Death}, in which the host machine sends a huge amount large amount of ping requests to a remove server. Once the server's request queue is filled, it will begin to drop new incoming requests, making it unresponsive. \textbf{Blue Screen of Death} (on Windows) and \textbf{Kernel panic} (on GNU/Linux), on the other hand, indicates that a fatal error has occurred the host machine and it is unable to recover from it. This action may result in the victim losing all unsaved data.
 
-The attack can also create a payload that would perform a \textbf{Denial of Service} attack or execute a \textbf{Blue screen of Death} or \textbf{kernel panic}.
+Lastly, the attacker can create a payload to get access to the victim's computer. One of the techniques is known as \textbf{reverse shelling}. \verb|netcat| is a command-line interface application which is used by the administrators to provide a connectivity between two systems. Netcat can operate in either server (listening) or client (creating a connection) mode. The attacker start up a listening shell on the victim's machine and use his/her machine to connect to it remotely. Unfortunately, if the victim's computer has a firewall enabled, the connection will not be established. This problem can be resolved by creating a reverse shell. The attacker runs netcat in a listening mode on his/her machine and uses the victim's machine to connect to it (connecting from the inside out). This will surpass the victim's firewall since it usually only blocks incoming connections \cite{WilhelmThomas2010Ppt}.
 
-
-The attack can also force Blue Screen of Death or perform Ping of Death.
-
-\todo{it can create a communication tunnel initializing a reverse shell}
+In 2021 the cybercriminal group FIN7 started shipping packages containing BadUSB devices to US companies. Their devices contained a malicious payload that gave them access to victim's network. Once they were in, they deployed randomware, such as BlackMatter or REvil, within the network \cite{gatlan_2022}.
 
 \chapter{Testing defense mechanisms}
 \label{defense}
@@ -1080,7 +1081,7 @@ At the time of writing this thesis, there are many available defensive software 
 
 Before I started experimenting I needed to initialize the service. The instructions were very simple: generate an initial policy file using \verb|usbguard generate-policy| and then start the service with \verb|systemctl start usbguard.service|. It was critical to generate the rules before starting the service, otherwise, all USB devices would be blocked by the daemon once started. The program scans all the USB devices and hubs currently connected to the machine and sets their target to "allow" meaning they are all whitelisted on the host machine. The testing environment was \verb|Fedora Linux 36 (Thirty Six); kernel 6.2.9|.
 
-The program that I chose for Windows operating systems is called \textbf{Kaspersky Endpoint Security}\footnote{\url{https://www.kaspersky.com/small-to-medium-business-security/endpoint-windows}}. It is a security application that provides computer protection against various types of threads, network or phishing attacks. It contains a list of protection components such as File Threat Protection, Web Thread Protection, system scan, and much more. What we are interested in is their \textbf{BadUSB Attack Prevention}. It works as follows: when a new USB device that emulates a keyboard is connected to the computer, the user receives a pop-up window where he/she has to type 4 digit number that is displayed on the screen from the connected device. The testing environment for this application was \verb|Windows 10 21H2|.
+The program that I chose for Windows operating systems is called \textbf{Kaspersky Endpoint Security}\footnote{\url{https://www.kaspersky.com/small-to-medium-business-security/endpoint-windows}}. It is a security application that provides computer protection against various types of threads, network or phishing attacks. It contains a list of protection components such as File Threat Protection, Web Thread Protection, system scan, and much more. What we are interested in is their \textbf{BadUSB Attack Prevention}. It works as follows: when a new USB device that emulates a keyboard is connected to the computer, the user receives a pop-up window where he/she has to type 4-digit number that is displayed on the screen from the connected device. The testing environment for this application was \verb|Windows 10 21H2|.
 
 I tested both software in the following way:
 \begin{enumerate}
@@ -1102,7 +1103,7 @@ First, I tested the USBGuard software on Fedora. When I connected the Rubber Duc
     \label{fig:usbguard_device_blocked}
 \end{figure}
 
-USBGuard also gave me the option to update the device's policy permanently. Once I whitelisted the Rubber Ducky device it did successfully fully execute the payload. I also tried to plug it into different ports. What I found was that the policy did not apply to the device if it was connected to a different USB HUB than previously \todo{show hub layout and explain it}. And lastly, I updated the device's firmware to enable MSC. And again the USBGuard successfully blocked the device and prevented it from executing the payload.
+USBGuard also gave me the option to update the device's policy permanently. Once I whitelisted the Rubber Ducky device it did successfully fully execute the payload. I also tried to plug it into different ports. What I found was that the policy did not apply to the device if it was connected to a different USB HUB than previously. And lastly, I updated the device's firmware to enable MSC. And again the USBGuard successfully blocked the device and prevented it from executing the payload.
 
 Kaspersky Endpoint Security program was next to be tested. Upon connecting the Rubber Ducky device I immediately received a pop-up window as shown in \autoref{fig:screenshot_kaspersky_popup}. The device did manage to execute the keystrokes but nothing happened on the host machine since it was "stuck" in the pop-up window. The Kaspersky program let me input the numbers using my mouse and whitelist the USB device.
 \begin{figure}[ht]
@@ -1119,7 +1120,7 @@ Unfortunately, I was unable to locate the list of whitelisted devices to remove 
     \label{fig:kaspersky_report}
 \end{figure}
 
-Both programs were very effective against keystrokes injection attacks. The USBGuard was more effective since the device has no real access to the system and all USB-related attacks would have been suppressed (not only the keystrokes injection attack). The disadvantage of USBGuard is its not very intuitive control. All the interactions are done using a terminal since there is no official GUI application available. So unless the user is familiar with working with the command line, he/she cannot update a device policy\footnote{There used to be \texttt{usbguard-applet-qt} but this software is no longer supported. The latest project that provides user-friendly notification pop-ups related to device presence updates is \texttt{usbguard-notifier} (\url{https://github.com/Cropi/usbguard-notifier})}.
+Both programs were very effective against keystrokes injection attacks. The USBGuard was more effective since the device has no real access to the system and all USB-related attacks would have been suppressed (not only the keystrokes injection attack). The disadvantage of USBGuard is that it is not very intuitive control. All the interactions are done using a terminal since there is no official GUI application available. So unless the user is familiar with working with the command line, he/she cannot update a device policy\footnote{There used to be \texttt{usbguard-applet-qt} but this software is no longer supported. The latest project that provides user-friendly notification pop-ups related to device presence updates is \texttt{usbguard-notifier} (\url{https://github.com/Cropi/usbguard-notifier})}.
 
 Kaspersky on the other hand gives users a user-friendly GUI application together with online documentation. Unfortunately, I was able to break through the defense by sending the authentication PIN through WiFi. So if the attacker has access to the screen, he will also gain access to the victim's machine. Another weakness of Kaspersky application is that it only covers keystrokes injection attacks. Other types of attacks (such as network card spoofing) will not be detected.
 
@@ -1133,7 +1134,7 @@ Kaspersky on the other hand gives users a user-friendly GUI application together
 \end{figure}
 
 \section{Another defense mechanism available}
-As stated in \autoref{maliciousPayloads}, most of the attacks require access to the terminal/command line. So another way to protect the host machine is by setting a password for running a command line as an administrator on Windows operating systems. All that is needed is to change the Windows registry\footnote{The instructions can be found here: \url{https://www.manageengine.com/device-control/badusb.html}}. The result can be seen in \autoref{fig:notifications}. As we can see before we updated the registry, it was fairly easy to open a terminal (or any other application) as an administrator as the only thing preventing us from doing so was a "Yes/No" confirmation button. But the new notification pop-up window requires us to enter the user name and password (or any other type of authentication).
+As stated in \autoref{maliciousPayloads}, most of the attacks require access to the terminal/command line. So another way to protect the host machine is by setting a password for running a command line as an administrator on Windows operating systems. All that is needed is to change the Windows registry\footnote{The instructions can be found here: \url{https://www.manageengine.com/device-control/badusb.html}}. The result can be seen in \autoref{fig:notifications}. As we can see before we updated the registry, it was fairly easy to open a terminal (or any other application) as an administrator as the only thing preventing us from doing so was a "Yes/No" confirmation button. But the new notification pop-up window requires us to enter the username and password (or any other type of authentication).
 
 Another defense mechanism was presented in the work \cite{goodusb} by Tian and his team called \textbf{GoodUSB} in 2015. They modified a Linux kernel module that maps USB devices to specific whitelisted drivers (for example an audio device such as headphones that is also registered as a Human Interface Device should only be able to execute a limited number of keys like \emph{Volume Up} and \emph{Volume Down}). Then they introduced a GoodUSB service (called gud) which sits in between the host controller and USB drivers. Upon connecting the USB device to the computer the user is asked to identify the device's functionality. If the device is marked as malicious GoodUSB service will redirect it to a virtualized USB honeypot where it can be monitored and analyzed. Otherwise, a driver will be loaded. The GoodUSB architecture can be seen in \autoref{fig:defense_mechanism_architectures}.
 
@@ -1154,7 +1155,7 @@ Other defense concepts are:
     \item hardware USB data blocker (also known as "USB condom")\cite{al-sibai_2023}
     \item and many more...
 \end{itemize}
-There is one concept that occurred to me while I was writing this thesis and it is related to \autoref{customLanguage}. The notion here is that the majority of keystrokes injection payloads rely on the standard US QWERTY keyboard. So, if the operating system changes the keyboard layout, for example, to CZ DVORAK after a keyboard device is connected, the payload will not be able to properly execute the payload because each key is mapped to a different output than on QWERTY. Of course, this is only a concept that has yet to be implemented. FuIt is also very insufficient since the attack will be successfully executed if the attacker guesses the keyboard layout that is set. Furthermore, it is insufficient because the attack will be successful if the attacker knows the keyboard layout that is set. And keyboard layouts only change printable keys, thus the attack will remain unchanged if the payload simply consists of modifier and non-printable keys (for example using \verb|Enter|, \verb|Tab|, and arrow keys).
+There is one concept that occurred to me while I was writing this thesis, and it is related to \autoref{customLanguage}. The notion here is that the majority of keystrokes injection payloads rely on the standard US QWERTY keyboard. So, if the operating system changes the keyboard layout, for example, to CZ DVORAK after a keyboard device is connected, the payload will not be able to properly execute the payload because each key is mapped to a different output than on QWERTY. Of course, this is only a concept that has yet to be implemented. It is also very insufficient since the attack will be successfully executed if the attacker guesses the keyboard layout that is set. Furthermore, it is insufficient because the attack will be successful if the attacker knows the keyboard layout that is set. And keyboard layouts only change printable keys, thus the attack will remain unchanged if the payload simply consists of modifier and non-printable keys (for example using \verb|Enter|, \verb|Tab|, and arrow keys).
 
 \chapter{Conclusion}
 \label{conclusion}
