@@ -13,7 +13,7 @@ The aim of this thesis is to provide readers with an overview of the BadUSB atta
 \label{ch:usb}
 Universal Serial Bus (also known as USB) is a peripheral interface used to connect external devices to computers. It defines the specifications of cables, sets of protocols, the speed of data exchange, and the way the host and device communicate with each other. Not only that, but it can also send power to devices (for example to charge smartphones).
 
-In this chapter we will discuss the interface's history which dated back 1995. Then we analyze how the USB protocol is structured: how does the host learned about the device, what the communication between the device and the host looks like, and what is needed in order for a USB device to act as a keyboard. All the information about USB were drawn from a book USB Complete by Jan Axelson \cite{USBComplete}.
+In this chapter, we will discuss the interface's history which dated back to 1995. Then we analyze how the USB protocol is structured: how does the host learned about the device, what the communication between the device and the host looks like, and what is needed in order for a USB device to act as a keyboard. All the information about USB was drawn from a book USB Complete by Jan Axelson \cite{USBComplete}.
 
 \section{History}
 \label{sec:history}
@@ -46,11 +46,11 @@ Over the next 20 years, USB has been constantly upgraded. In April 2000 \textbf{
 \section{USB topology}
 \label{sec:topology}
 
-USB communication requires two components in order to work: a host machine with USB support and one or more USB devices. The host machine consists of a USB \textbf{host controller}, which manages the communication on the bus, and \textbf{root hub} that connects external USB devices and hubs to the host machine. Together they detect newly attached devices and transfer requests from the host to the device. USB protocol supports up to 127 simultaneously connected devices including hubs.
+USB communication requires two components in order to work: a host machine with USB support and one or more USB devices. The host machine consists of a USB \textbf{host controller}, which manages the communication on the bus, and \textbf{root hub} which connects external USB devices and hubs to the host machine. Together they detect newly attached devices and transfer requests from the host to the device. USB protocol supports up to 127 simultaneously connected devices including hubs.
 
-Every USB hub creates a star-shaped topology. It typically has two, four or seven USB ports. Each USB hub has one upstream-facing connector which is used for communicating with the host and one or multiple downstream connections each leading to the USB sockets which are used to by the connected devices to transfer data to the devices. USB hubs can be connected in series as shown in \autoref{fig:usb_topology}.
+Every USB hub creates a star-shaped topology. It typically has two, four, or seven USB ports. Each USB hub has one upstream-facing connector which is used for communicating with the host and one or multiple downstream connections each leading to the USB sockets which are used by the connected devices to transfer data to the devices. USB hubs can be connected in series as shown in \autoref{fig:usb_topology}.
 
-Almost every USB communication is initiated by the host machine and the devices are required to response to the incoming requests. The USB specification defines a set of requests for each device class that the host can send to the device. The device's chip must be able to accept the request and properly answer to them. That usually requires the device to move data to a buffer to send it back to the host.
+Almost every USB communication is initiated by the host machine and the devices are required to respond to the incoming requests. The USB specification defines a set of requests for each device class that the host can send to the device. The device's chip must be able to accept the request and properly answer them. That usually requires the device to move data to a buffer to send it back to the host.
 
 \begin{figure}[ht]
     \centering
@@ -61,7 +61,7 @@ Almost every USB communication is initiated by the host machine and the devices 
 
 \section{Enumeration}
 \label{sec:enumeration}
-The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts be requesting what speed is the device capable of communicating at. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors_and_classes}). Once all information has been retrieved, the host assigns an address and loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
+The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning the device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts by requesting what speed is the device capable of communicating. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors_and_classes}). Once all information has been retrieved, the host assigns an address and loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
 
 \section{Descriptors and Device Classes}
 \label{sec:descriptors_and_classes}
@@ -74,7 +74,7 @@ As mentioned in the previous section, during the enumeration phase, the host ret
     \item and endpoint descriptor.
 \end{itemize}
 
-There are other types of descriptor that are not required by the host. If a device supports multiple speeds (full and high speed), it needs to define additional configuration descriptors for each of the speed (\emph{device\_qualifier} and \emph{other\_speed\_configuration}). Another commonly used descriptor is a \emph{string descriptor}, which allows the host to retrieve descriptive text from the device. The \autoref{tab:descriptor_table} shows a shortened list of descriptor types with their corresponding byte value that is passed to the \verb|Get Descriptor| request.
+There are other types of descriptors that are not required by the host. If a device supports multiple speeds (full and high speed), it needs to define additional configuration descriptors for each of the speeds (\emph{device\_qualifier} and \emph{other\_speed\_configuration}). Another commonly used descriptor is a \emph{string descriptor}, which allows the host to retrieve descriptive text from the device. The \autoref{tab:descriptor_table} shows a shortened list of descriptor types with their corresponding byte value that is passed to the \verb|Get Descriptor| request.
 
 \begin{table}[ht]
     \centering
@@ -89,7 +89,7 @@ There are other types of descriptor that are not required by the host. If a devi
      other\_speed\_configuration & 0x07           \\ \hline
 
     \end{tabular}
-    \caption{Table of seven most used descriptors and their corresponding identification byte value. In total there are 18 descriptor types.}
+    \caption{Table of seven most used descriptors and their corresponding identification byte value. In total, there are 18 descriptor types.}
     \label{tab:descriptor_table}
 \end{table}
 
@@ -97,27 +97,27 @@ There are other types of descriptor that are not required by the host. If a devi
 This is the first descriptor requested by the host requests upon connecting the device to the host machine. It comprises device identification information such as \emph{Product ID}, \emph{Vendor ID}, \emph{Serial Number}, as well as information needed by the host to retrieve further data such as \emph{Device Class}, or \emph{number of configurations}. The host retrieves this descriptor using \verb|Get Descriptor| request with the parameter byte set to \verb|0x01|.
 
 \subsection*{Configuration descriptor}
-After receiving the device descriptor, the host proceeds to retrieve configuration, interface and endpoint descriptors. The configuration descriptor specifies the device's functionalities. The device can support multiple configuration based on the power use. Only one configuration is active at a time. Each configuration holds an information which tells the host how many interface descriptors and endpoint descriptors are present in the response buffer. The host retrieves this descriptor using \verb|Get Descriptor| request with the parameter byte set to \verb|0x02|.
+After receiving the device descriptor, the host proceeds to retrieve configuration, interface, and endpoint descriptors. The configuration descriptor specifies the device's functionalities. The device can support multiple configurations based on the power use. Only one configuration is active at a time. Each configuration holds information that tells the host how many interface descriptors and endpoint descriptors are present in the response buffer. The host retrieves this descriptor using \verb|Get Descriptor| request with the parameter byte set to \verb|0x02|.
 
 \subsection*{Interface descriptor}
-An interface descriptor tells the host what the device is capable of doing. The descriptor contains an interface class, subclass, protocol and number of endpoints. The interface class\footnote{A list of interface classes can be found here: \url{https://www.usb.org/defined-class-codes}} is what defines the device functionality. Some interface classes (such as Human Interface Device class, or shortly HID) require additional descriptor to be defined and sent to the host. In case of HID, its descriptor defines the format of a \emph{report} which is HID's means of transporting data between the host and the device. The interface descriptors and their subordinate descriptors are usually sent together with configuration descriptor request.
+An interface descriptor tells the host what the device is capable of doing. The descriptor contains an interface class, subclass, protocol, and number of endpoints. The interface class\footnote{A list of interface classes can be found here: \url{https://www.usb.org/defined-class-codes}} is what defines the device functionality. Some interface classes (such as Human Interface Device class, or shortly HID) require additional descriptors to be defined and sent to the host. In the case of HID, its descriptor defines the format of a \emph{report} which is HID's means of transporting data between the host and the device. The interface descriptors and their subordinate descriptors are usually sent together with a configuration descriptor request.
 
 \subsection*{Endpoint descriptor}
-Finally, the endpoint descriptor defines information about endpoint address. It contains a direction (IN if data are sent to host, and OUT if data are received from the host) and transfer type. There are in total 4 transfer types:
+Finally, the endpoint descriptor defines information about the endpoint address. It contains a direction (IN if data are sent to the host, and OUT if data are received from the host) and transfer type. There are in total 4 transfer types:
 \begin{description}
     \item [Control] This transfer is primarily used for standard requests, such as \verb|Get Descriptor| request.
-    \item [Interrupt] Interrupt transfer is implemented on devices that needs data to be sent to the host as fast as possible. We can associate interrupt transfers with HIDs.
+    \item [Interrupt] Interrupt transfer is implemented on devices that need data to be sent to the host as fast as possible. We can associate interrupt transfers with HIDs.
     \item [Bulk] This transfer is usually used when it is not the transferring speed is not critical, such as sending data to the printer or reading/writing data to the disk.
-    \item [Isochronous] Isochronous transfer guarantees delivery of data but no error correction is implemented. It is usually used to transfer audio and video in real time. If an error occurs the device doesn't re-transmit lost or corrupted data.
+    \item [Isochronous] Isochronous transfer guarantees delivery of data but no error correction is implemented. It is usually used to transfer audio and video in real-time. If an error occurs the device doesn't re-transmit lost or corrupted data.
 \end{description}
-Every device must have Endpoint 0 configured for control transfer. The endpoint descriptors and their subordinate descriptors are usually sent together with configuration descriptor request.
+Every device must have Endpoint 0 configured for control transfer. The endpoint descriptors and their subordinate descriptors are usually sent together with a configuration descriptor request.
 \\ \\
-An example of device's descriptor structure can be seen in \autoref{fig:descriptors}.
+An example of the device's descriptor structure can be seen in \autoref{fig:descriptors}.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\linewidth]{./obrazky-figures/descriptor_layout.pdf}
-    \caption{A USB device descriptor structure hierarchy. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
+    \caption{A USB device descriptor structure hierarchy. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight the interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
     \label{fig:descriptors}
 \end{figure}
 
@@ -136,7 +136,7 @@ BadUSB was initially revealed in 2014 at the Black Hat conference in the USA. Th
 The team also briefly discussed a list of five potential defense ideas:
 \begin{description}
     \item [Whitelist USB devices] Only selected USB devices will be allowed to communicate with the host. Unfortunately, USB devices have no reliable identifier, not all devices have a unique serial number. In 2018, Hessam Mohammadmoradi and Omprakash Gnawali presented a work that deals with this problem\cite{whitelistBadUSB2018}.
-    \item [Block critical device classes, block USB completely] This will reduce the usability of the USB interface. And only few device classes can be used for abuse.
+    \item [Block critical device classes, block USB completely] This will reduce the usability of the USB interface. And only a few device classes can be used for abuse.
     \item [Scan peripheral firmware for malware] Very difficult and not always possible.
     \item [Use code signing for firmware updates] The main problem with this approach is that there are billions of old devices that will remain susceptible.
     \item [Disable firmware updates in hardware] A very simple and effective approach.
@@ -165,7 +165,7 @@ The concept of BadUSB-C was introduced in the work by Hongyu Lu and his team\cit
 \end{figure}
 
 \subsection*{Other BadUSB attacks concepts}
-A BadUSB device can also deliver an attack during the machine's boot phase. It can override an existing computer BIOS with the one stored on the device. The machine will then boot into the system inside the USB device. This give the attacker an opportunity to execute commands before the actual operating system is loaded. The USB device can also be programmed to brute force the lock screen PIN on an Android phone\footnote{Link to the payload written in DuckyScript: \url{https://shop.hak5.org/blogs/payloads/android-pin-brute-force}}. The last example is the ability to sniff data from the downstream USB traffic. So if a USB thumb drive is connected to the same hub as the BadUSB device is, the device can reconstruct a file that was transferred to the USB thumb drive send from the host machine.
+A BadUSB device can also deliver an attack during the machine's boot phase. It can override an existing computer BIOS with the one stored on the device. The machine will then boot into the system inside the USB device. This give the attacker an opportunity to execute commands before the actual operating system is loaded. The USB device can also be programmed to brute force the lock screen PIN on an Android phone\footnote{Link to the payload written in DuckyScript: \url{https://shop.hak5.org/blogs/payloads/android-pin-brute-force}}. The last example is the ability to sniff data from the downstream USB traffic. So if a USB thumb drive is connected to the same hub as the BadUSB device, the device can reconstruct a file that was transferred to the USB thumb drive sent from the host machine.
 
 % =================================================================================
 
