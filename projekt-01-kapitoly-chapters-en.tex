@@ -61,10 +61,10 @@ Almost every USB communication is initiated by the host machine and the devices 
 
 \section{Enumeration}
 \label{sec:enumeration}
-The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts be requesting what speed is the device capable of communicating at. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors_and_classes}). Once all information has been retrieved, the host assigns an address and loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
+The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts be requesting what speed is the device capable of communicating at. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors, assign an address for the device, and configuration data (more in \autoref{sec:descriptors_and_classes}). Once all information has been retrieved, the loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
 
-\section{Descriptors and Device Classes}
-\label{sec:descriptors_and_classes}
+\section{Descriptors}
+\label{sec:descriptors}
 
 As mentioned in the previous section, during the enumeration phase, the host retrieves all descriptors from the device. The \textbf{descriptors} contain crucial information that describes the capabilities of the device. Each device must have these four descriptors defined:
 \begin{itemize}
@@ -117,11 +117,16 @@ An example of device's descriptor structure can be seen in \autoref{fig:descript
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\linewidth]{./obrazky-figures/descriptor_layout.pdf}
-    \caption{A USB device descriptor structure hierarchy. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
+    \caption{A descriptor structure hierarchy of an USB composite device. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
     \label{fig:descriptors}
 \end{figure}
 
-\todo{briefly mention a keyboard??}
+\section{USB Device Classes and Human Interface Device}
+\label{sec:device_classes_and_hid}
+USB introduced device classes to group together devices that provide similar functionality. All cameras are designed to capture a video, all speakers are made to play a music. The group can be identified by three bytes with the names \emph{Base Class}, \emph{SubClass} and \emph{Protocol}. The information is stored either in Device descriptor, Interface descriptor, or both\footnote{Defined class codes can be found here: \url{https://www.usb.org/defined-class-codes}}.
+
+One of the classes is named Human Interface Device (or HID). Peripherals input devices, such as keyboards, mice, or game consoles, are included in the class. Each device in this class is required to define a \textbf{report} structure which is used to communicate with the host. This structure is then sent to the host during the enumeration phase. The report structure is very flexible, and the user can easily create a new one for its custom device. The host periodically polls from the device IN endpoint. When the device wants data to be sent to the host, it creates an instance of the report fill with given data and sends it as a reply to the poll token. If not defined differently, the host can send data to the device through a \verb|Set Report| request using control transfer (Endpoint 0).
+
 
 % =================================================================================
 
@@ -143,7 +148,7 @@ The team also briefly discussed a list of five potential defense ideas:
 \end{description}
 
 \section{BadUSB devices and attacks}
-\label{lbl:badusb_devices}
+\label{sec:badusb_devices}
 In this section, we will discuss in detail some of the attacks that are related to the BadUSB.
 
 \subsection*{Rubber Ducky}
