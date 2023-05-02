@@ -1,5 +1,5 @@
 \chapter{Introduction}
-Universal Serial Bus (USB) is the most widely-used connector for modern computer systems. It allows various devices to connect to the computer. The USB has replaced many older interfaces, such as parallel and serial ports, and has become the standard for connecting devices such as keyboards, mice, printers, and storage devices to computers. The main selling point of the USB interface was the introduction of "plug-and-play" feature which removes the need for the users to configure the device. Upon connecting the device to the computer, the system automatically recognizes the device and immediately assigns appropriate drivers.
+Universal Serial Bus (USB) is the most widely-used connector for modern computer systems. It allows various devices to connect to the computer. The USB has replaced many older interfaces, such as parallel and serial ports, and has become the standard for connecting devices such as keyboards, mice, printers, and storage devices to computers. The main selling point of the USB interface was the introduction of a "plug-and-play" feature which removes the need for the users to configure the device. Upon connecting the device to the computer, the system automatically recognizes the device and immediately assigns appropriate drivers.
 
 Unfortunately, as the popularity of the interface grew, new types of malicious attacks against USB began to emerge. In 2014, a group of researchers from Security Research Labs announced a new type of USB malware called BadUSB. They demonstrated a USB device with modified firmware that could spoof a keyboard, network card, and even a display. And this type of malware is undetectable by conventional antivirus programs.
 
@@ -61,7 +61,7 @@ Almost every USB communication is initiated by the host machine and the devices 
 
 \section{Enumeration}
 \label{sec:enumeration}
-The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning the device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts by requesting what speed is the device capable of communicating. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors_and_classes}). Once all information has been retrieved, the host assigns an address and loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
+The interaction between the host and the device starts as soon as the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning the device's functionality is called \textbf{enumeration}. When the host detects that a new device has been connected it starts by requesting what speed is the device capable of communicating. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. Following that, the host sends a series of requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors}). Once all information has been retrieved, the host assigns an address and loads the device drives. The whole series of events is depicted in \autoref{fig:enumeration_diagram}.
 
 \section{Descriptors}
 \label{sec:descriptors}
@@ -117,15 +117,15 @@ An example of the device's descriptor structure can be seen in \autoref{fig:desc
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\linewidth]{./obrazky-figures/descriptor_layout.pdf}
-    \caption{A descriptor structure hierarchy of an USB composite device. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight the interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
+    \caption{A descriptor structure hierarchy of a USB composite device. A green box marks data that can be retrieved with \texttt{Get Descriptor(device)} request and a red box is retrieved with \texttt{Get Descriptor(configuration)} request. Yellow boxes highlight the interface descriptor and its subordinate descriptors and blue boxes mark out endpoint descriptors.}
     \label{fig:descriptors}
 \end{figure}
 
 \section{USB Device Classes and Human Interface Device}
 \label{sec:device_classes_and_hid}
-USB introduced device classes to group together devices that provide similar functionality. All cameras are designed to capture a video, all speakers are made to play a music. The group can be identified by three bytes with the names \emph{Base Class}, \emph{SubClass} and \emph{Protocol}. The information is stored either in Device descriptor, Interface descriptor, or both\footnote{Defined class codes can be found here: \url{https://www.usb.org/defined-class-codes}}.
+USB introduced device classes to group together devices that provide similar functionality. All cameras are designed to capture a video, all speakers are made to play music. The group can be identified by three bytes with the names \emph{Base Class}, \emph{SubClass} and \emph{Protocol}. The information is stored either in Device descriptor, Interface descriptor, or both\footnote{Defined class codes can be found here: \url{https://www.usb.org/defined-class-codes}}.
 
-One of the classes is named Human Interface Device (or HID). Peripherals input devices, such as keyboards, mice, or game consoles, are included in the class. Each device in this class is required to define a \textbf{report} structure which is used to communicate with the host. This structure is then sent to the host during the enumeration phase. The report structure is very flexible, and the user can easily create a new one for its custom device. The host periodically polls from the device IN endpoint. When the device wants data to be sent to the host, it creates an instance of the report fill with given data and sends it as a reply to the poll token. If not defined differently, the host can send data to the device through a \verb|Set Report| request using control transfer (Endpoint 0).
+One of the classes is named Human Interface Device (or HID). Peripherals input devices, such as keyboards, mice, or game consoles, are included in the class. Each device in this class is required to define a \textbf{report} structure which is used to communicate with the host. This structure is then sent to the host during the enumeration phase. The report structure is very flexible, and the user can easily create a new one for its custom device. The host periodically polls from the device IN endpoint. When the device wants data to be sent to the host, it creates an instance of the report filled with given data and sends it as a reply to the poll token. If not defined differently, the host can send data to the device through a \verb|Set Report| request using control transfer (Endpoint 0).
 
 % =================================================================================
 
@@ -169,7 +169,7 @@ The concept of BadUSB-C was introduced in the work by Hongyu Lu and his team\cit
 \end{figure}
 
 \subsection*{Other BadUSB attacks concepts}
-A BadUSB device can also deliver an attack during the machine's boot phase. It can override an existing computer BIOS with the one stored on the device. The machine will then boot into the system inside the USB device. This give the attacker an opportunity to execute commands before the actual operating system is loaded. The USB device can also be programmed to brute force the lock screen PIN on an Android phone\footnote{Link to the payload written in DuckyScript: \url{https://shop.hak5.org/blogs/payloads/android-pin-brute-force}}. The last example is the ability to sniff data from the downstream USB traffic. So if a USB thumb drive is connected to the same hub as the BadUSB device is, the device can reconstruct a file that was transferred to the USB thumb drive send from the host machine.
+A BadUSB device can also deliver an attack during the machine's boot phase. It can override an existing computer BIOS with the one stored on the device. The machine will then boot into the system inside the USB device. This gives the attacker an opportunity to execute commands before the actual operating system is loaded. The USB device can also be programmed to brute force the lock screen PIN on an Android phone\footnote{Link to the payload written in DuckyScript: \url{https://shop.hak5.org/blogs/payloads/android-pin-brute-force}}. The last example is the ability to sniff data from the downstream USB traffic. So if a USB thumb drive is connected to the same hub as the BadUSB device, the device can reconstruct a file that was transferred to the USB thumb drive sent from the host machine.
 
 % =================================================================================
 
@@ -930,4 +930,4 @@ There is one concept that occurred to me while I was writing this thesis, and it
 
 \chapter{Conclusion}
 \label{ch:conclusion}
-% TODO:
+\todo{finish this}
