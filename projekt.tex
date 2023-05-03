@@ -25,19 +25,19 @@
 %\documentclass[english,zadani,print]{fitthesis} % for the black and white print - links are black
 %\documentclass[zadani,cprint]{fitthesis} % pro barevný tisk - odkazy jsou černé, znak VUT barevný
 %\documentclass[english,zadani,cprint]{fitthesis} % for the print - links are black, logo is color
-% * Je-li práce psaná v anglickém jazyce, je zapotřebí u třídy použít 
+% * Je-li práce psaná v anglickém jazyce, je zapotřebí u třídy použít
 %   parametr english následovně:
-%   If thesis is written in English, it is necessary to use 
+%   If thesis is written in English, it is necessary to use
 %   parameter english as follows:
 %      \documentclass[english]{fitthesis}
-% * Je-li práce psaná ve slovenském jazyce, je zapotřebí u třídy použít 
+% * Je-li práce psaná ve slovenském jazyce, je zapotřebí u třídy použít
 %   parametr slovak následovně:
-%   If the work is written in the Slovak language, it is necessary 
+%   If the work is written in the Slovak language, it is necessary
 %   to use parameter slovak as follows:
 %      \documentclass[slovak]{fitthesis}
-% * Je-li práce psaná v anglickém jazyce se slovenským abstraktem apod., 
+% * Je-li práce psaná v anglickém jazyce se slovenským abstraktem apod.,
 %   je zapotřebí u třídy použít parametry english a enslovak následovně:
-%   If the work is written in English with the Slovak abstract, etc., 
+%   If the work is written in English with the Slovak abstract, etc.,
 %   it is necessary to use parameters english and enslovak as follows:
 %      \documentclass[english,enslovak]{fitthesis}
 
@@ -83,7 +83,7 @@
 % problém je, že balíček hyperref musí být uveden jako poslední, takže nemůže
 % být v šabloně
 % "hyperref" package create clickable links in pdf if you are using pdflatex.
-% Problem is that this package have to be introduced as the last one so it 
+% Problem is that this package have to be introduced as the last one so it
 % can not be placed in the template file.
 \ifWis
 \ifx\pdfoutput\undefined % nejedeme pod pdflatexem / we are not using pdflatex
@@ -134,13 +134,13 @@
   %dectitle.length={14.5cm}, % nastavení délky bloku s titulkem nad prohlášením pro úpravu zalomení řádku (lze definovat zde nebo níže) / setting the length of a block with a thesis title above declaration for adjusting a line break (can be defined here or below)
   %Autor / Author
   author.name={Hung},   % jméno autora / author name
-  author.surname={Do},   % příjmení autora / author surname 
+  author.surname={Do},   % příjmení autora / author surname
   %author.title.p={Bc.}, % titul před jménem (nepovinné) / title before the name (optional)
   %author.title.a={Ph.D.}, % titul za jménem (nepovinné) / title after the name (optional)
   %Ustav / Department
   department={UITS}, % doplňte příslušnou zkratku dle ústavu na zadání: UPSY/UIFS/UITS/UPGM / fill in appropriate abbreviation of the department according to assignment: UPSY/UIFS/UITS/UPGM
   % Školitel / supervisor
-  supervisor.name={Marek},   % jméno školitele / supervisor name 
+  supervisor.name={Marek},   % jméno školitele / supervisor name
   supervisor.surname={Tamaškovič},   % příjmení školitele / supervisor surname
   supervisor.title.p={Ing.},   %titul před jménem (nepovinné) / title before the name (optional)
   supervisor.title.a={},    %titul za jménem (nepovinné) / title after the name (optional)
@@ -160,10 +160,9 @@
 % The supplementary information was provided by Mr. Y
   I have listed all the literary sources, publications and other sources, which were used during the preparation of this thesis.},
   % Poděkování (nepovinné, nejlépe v jazyce práce) / Acknowledgement (optional, ideally in the language of the thesis)
-  acknowledgment={V této sekci je možno uvést poděkování vedoucímu práce a těm, kteří poskytli odbornou pomoc
-(externí zadavatel, konzultant apod.).\todo{}},
-  %acknowledgment={Here it is possible to express thanks to the supervisor and to the people which provided professional help
-%(external submitter, consultant, etc.).},
+  %acknowledgment={V této sekci je možno uvést poděkování vedoucímu práce a těm, kteří poskytli odbornou pomoc
+%(externí zadavatel, konzultant apod.).},
+  acknowledgment={I would like to express my deepest appreciation to my supervisor Mr. Marek Tamaškovič, for providing me with the opportunity to work on this very interesting topic and for his advice throughout the writing of my thesis.},
   % Rozšířený abstrakt (cca 3 normostrany) - lze definovat zde nebo níže / Extended abstract (approximately 3 standard pages) - can be defined here or below
   %extendedabstract={Do tohoto odstavce bude zapsán rozšířený výtah (abstrakt) práce v českém (slovenském) jazyce.},
   %extabstract.odd={true}, % Začít rozšířený abstrakt na liché stránce? / Should extended abstract start on the odd page?
@@ -207,7 +206,7 @@
   \setlength{\parskip}{0pt}
 
   {\hypersetup{hidelinks}\tableofcontents}
-  
+
   % Seznam obrazku a tabulek (pokud prace obsahuje velke mnozstvi obrazku, tak se to hodi)
   % List of figures and list of tables (if the thesis contains a lot of pictures, it is good)
   \ifczech
@@ -217,7 +216,7 @@
     \renewcommand\listfigurename{Zoznam obrázkov}
   \fi
   % {\hypersetup{hidelinks}\listoffigures}
-  
+
   \ifczech
     \renewcommand\listtablename{Seznam tabulek}
   \fi
@@ -245,7 +244,7 @@
   \else
     \input{projekt-01-kapitoly-chapters}
   \fi
-  
+
   % Kompilace po částech (viz výše, nutno odkomentovat)
   % Compilation piecewise (see above, it is necessary to uncomment it)
   %\subfile{projekt-01-uvod-introduction}
@@ -265,7 +264,7 @@
     \def\@openbib@code{\addcontentsline{toc}{chapter}{Literatura}}
     \makeatother
     \bibliographystyle{bib-styles/Pysny/czplain}
-  \else 
+  \else
     \makeatletter
     \def\@openbib@code{\addcontentsline{toc}{chapter}{Bibliography}}
     \makeatother
@@ -303,7 +302,7 @@
 %\iftwoside
 %  \cleardoublepage
 %\fi
-  
+
 \ifslovak
 %  \section*{Zoznam príloh}
 %  \addcontentsline{toc}{section}{Zoznam príloh}
@@ -317,30 +316,30 @@
   \fi
 \fi
   \startcontents[chapters]
-  \setlength{\parskip}{0pt} 
+  \setlength{\parskip}{0pt}
   % seznam příloh / list of appendices
   % \printcontents[chapters]{l}{0}{\setcounter{tocdepth}{2}}
-  
+
   \ifODSAZ
     \setlength{\parskip}{0.5\bigskipamount}
   \else
     \setlength{\parskip}{0pt}
   \fi
-  
+
   % vynechani stranky v oboustrannem rezimu
   \iftwoside
     \cleardoublepage
   \fi
-  
+
   % Přílohy / Appendices
   \ifenglish
     \input{projekt-30-prilohy-appendices-en}
   \else
     \input{projekt-30-prilohy-appendices}
   \fi
-  
+
   % Kompilace po částech (viz výše, nutno odkomentovat)
   % Compilation piecewise (see above, it is necessary to uncomment it)
   %\subfile{projekt-30-prilohy-appendices}
-  
+
 \end{document}
