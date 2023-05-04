@@ -931,6 +931,10 @@ There is one concept that occurred to me while I was writing this thesis, and it
 \chapter{Conclusion}
 \label{ch:conclusion}
 
-The main goal of this thesis was to create a device capable of executing pre-defined sequence of keystrokes which I successfully implemented. The device supports a communication over Wi-Fi.
+The main objective of this thesis was to create a USB device capable of executing pre-defined sequence of keystrokes (payload) which I successfully accomplished. The payload can be either statically generated and compiled together with the Raspberry Pi Pico's firmware, or it can be dynamically deployed after the USB device is connected to the computer. I created a custom language with easy to understand syntax for developing payloads. And thanks to Raspberry Pi Pico's inclucion of Wi-Fi chip, the user can easily control the device wirelessly. The device can also act as a USB thumb drive once a mass storage class is enabled.
 
-During the development, I used all my knowledge that I have collected for over the past three years at the university. This project contains
+The BadUSB threads might be undetectable by antivirus programs, the community has already develop numerous effective defense strategies that can protect us against these types of attacks. My aim was not to create an evil device used for mass destruction, but to give people a tool to experiment with and to learn about what these devices are capable of doing. Rubber Ducky can help us automate complex processes and operations that cannot be simply done by running a script in the computer. 
+
+Even though the core functionality is working pretty well, this project is far from done and there is plenty of features that can be added in the future. From the support of basic payloads written in the official DuckyScript, to extending the server's API, or making the mass storage fully working with an external hardware (microSD). There are no limitations to what can and what cannot be added. I wanted to make this project available for everyone and that is why I decided to share the source code publically\footnote{\url{https://github.com/hungdojan/elastic-quacker}}. I hope that this project's development will not end with this thesis.
+
+\todo{learn from the past 3 years??}
