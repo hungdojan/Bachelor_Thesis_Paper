@@ -61,7 +61,7 @@ Usually, the host machine initiates the USB communication, and the devices are r
 
 \section{Enumeration}
 \label{sec:enumeration}
-The interaction between the host and the device starts when the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning the device's functionality is called \textbf{enumeration}. When the host detects that a new device has been attached, it starts by requesting what speed the device supports for communicating. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. The host sends multiple requests to retrieve device descriptors and configuration data (more in \autoref{sec:descriptors}). Once all information has been pull, the host assigns an address and loads the device drives. \autoref{fig:enumeration_diagram} depicts the whole series of events.
+The interaction between the host and the device starts when the device is connected to the host machine. The host needs to identify what kind of device has been plugged in. The process of learning the device's functionality is called \textbf{enumeration}. When the host detects that a new device has been attached, it starts by requesting what speed the device supports for communicating. Depending on the version of the USB, it can support \emph{low speed}, \emph{full speed}, \emph{high speed}, or \emph{SuperSpeed}. The host sends multiple requests to retrieve device descriptors and configuration data (more in Section \ref{sec:descriptors}). Once all information has been pull, the host assigns an address and loads the device drives. \autoref{fig:enumeration_diagram} depicts the whole series of events.
 
 \section{Descriptors}
 \label{sec:descriptors}
@@ -442,7 +442,7 @@ Operation codes and their values:
 
 The first two operational codes fall under the first group. Their purpose is to change or check whether the device is currently in read-write mode. Other actions will depend on it. \verb|SET_EDITABLE| (0x01) sends a single-byte payload of 0x00, which will set the device to \emph{read-only} mode, or 0x01, which will switch the device to \emph{read-write} mode. \verb|GET_EDITABLE| (0x02) retrieves the current mode present on the device.
 
-The second group's functionality is to alter the payload stored on the device. It is required for the device to be in \emph{read-write} mode. Otherwise, the device will respond with an error message, and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\texttt{MDFR}), a reserved byte, 6 keyboards key IDs (see \autoref{sec:design_language}), and a \texttt{LAST} byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. Users can retrieve it from the server response payload.
+The second group's functionality is to alter the payload stored on the device. It is required for the device to be in \emph{read-write} mode. Otherwise, the device will respond with an error message, and the action will be ignored. \verb|CLEAR_DATA| (0x03) action removes the current payload from the device. \verb|PUSH_DATA| (0x04) uploads a new \emph{key sequence} to the device. The payload should contain the \emph{key sequence} data already reshaped to the desired format expected by the device\footnote{The expected format can be seen in \autoref{fig:key_sequence_format}. It is a 13 bytes long structure where \emph{waiting delay} occupies the first 4 bytes, followed by a 1 bitmap of \emph{modifiers} (\texttt{MDFR}), a reserved byte, 6 keyboards key IDs (see Section \ref{sec:design_language}), and a \texttt{LAST} byte, which indicates that this key sequence will be the last one in the series.}. \verb|POP_DATA| (0x05) removes the last inserted key sequence. Users can retrieve it from the server response payload.
 
 \begin{figure}[ht]
 \centering
@@ -699,7 +699,7 @@ There are two source files that deal with our server application: \verb|tcp_serv
 
 \section{Language parser}
 \label{sec:implementation_parser}
-This section describes how the parser of the language, defined in Section \ref{sec:design_language}, works. Both lexical and syntax analysis of the input is done using regular expression in \verb|KeySeqvParser| class. I use groups in the regex pattern (seen in \autoref{fig:regex}) to extract data from the input string.
+This section describes how the parser of the language, defined in Section \ref{sec:design_language}, works. Both lexical and syntax analysis of the input is done using regular expression in \verb|KeySeqvParser| class\footnote{This regex pattern was inspired by this project: \url{https://github.com/lydell/vim-like-key-notation}}. I use groups in the regex pattern (seen in \autoref{fig:regex}) to extract data from the input string.
 \begin{figure}[ht]
 \centering
 \begin{varwidth}{\linewidth}
@@ -732,7 +732,25 @@ First, the program cycles through the input lines from the file or \verb|STDIN|.
 }
 \end{algorithm}
 
-The class \verb|KeySeqv| contains information about a single key sequence. It is the same structure as a \verb|key_seqv_t| structure we can find in the Rubber Ducky system (see Subsection \ref{ssec:payload}). The class also contains a \verb|to_bytes| method which converts the object's content to a series of bytes that complies with the key sequence byte format described in \autoref{fig:key_sequence_format}. The whole parser module can be seen in \autoref{fig:rd_client_module}.
+The class \verb|KeySeqv| contains information about a single key sequence. It is the same structure as a \verb|key_seqv_t| structure we can find in the Rubber Ducky system (see Subsection \ref{ssec:payload}). The class also contains a \verb|to_bytes| method which converts the object's content to a series of bytes that complies with the key sequence byte format described in \autoref{fig:key_sequence_format}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{./obrazky-figures/exception_classes.pdf}
+    \caption{Parser exception hierarchy.}
+    \label{fig:parser_exception}
+\end{figure}
+
+Parser module also implements exception classes for each error case in \verb|error.py|. \autoref{fig:parser_exception} depicts their hierarchy. All exceptions derive from the base class \verb|ParserError|. Six lexical and syntax errors with their corresponding class names are listed below:
+\begin{description}
+    \item [NonReadableCharacterError] The script contains a character that is not in ASCII encoding or is not printable.
+    \item [SpecialSequenceShiftToggleError] Normal keys in \emph{special combination} uses \texttt{Shift} key inconsistently.
+    \item [UnknownModifierError] The \emph{special combination} contains an unknown modifier.
+    \item [UndefinedSpecialKeyNameError] Special key or macro key used in \emph{special combination} is not recognized by the program.
+    \item [KeySequenceSizeExceededError] The number of simultaneously pressed keys exceeded the maximum limit.
+    \item [ShiftToggleWithPrintableKeysError] The use of printable keys and \texttt{Shift} key in \emph{special combination} is forbidden.
+\end{description}
+The whole parser module can be seen in \autoref{fig:rd_client_module}.
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\linewidth]{./obrazky-figures/rd_client_module.pdf}
@@ -777,7 +795,7 @@ def get_mode() -> BaseMode:
 The diagram in \autoref{fig:dataflows} below summarizes how the Rubber Ducky and client application work. The left one shows the steps the Rubber Ducky device needs to execute before processing the payload. The diagram on the right displays the communication data flow between the client and the server when the user runs \verb|NetworkMode|.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.85\linewidth]{obrazky-figures/summary_diagram.pdf}
+    \includegraphics[width=0.9\linewidth]{obrazky-figures/summary_diagram.pdf}
     \caption{Rubber Ducky's state machine and client-server communication data flow.}
     \label{fig:dataflows}
 \end{figure}
@@ -935,7 +953,7 @@ Of course, none of the concepts have yet to be implemented. Changing the keyboar
 
 The main objective of this thesis was to create a USB device capable of executing the pre-defined sequence of keystrokes (payload) which I successfully accomplished. The payload can be statically generated and compiled with the Raspberry Pi Pico's firmware or dynamically deployed after the USB device is connected to the computer. I created a custom language with easy-to-understand syntax for developing payloads. And thanks to Raspberry Pi Pico's inclusion of a Wi-Fi chip, the user can easily control the device wirelessly. The device can also act as a USB thumb drive if enabled.
 
-The BadUSB threads might be undetectable by antivirus programs, but fortunately, the community has already developed numerous effective defense strategies that can protect us against these types of attacks. I tested the implemented device against two programs: USBGuard and Kaspersky Endpoint Security. Both performed well and successfully suppressed the attack. I also discussed a few other possible defense strategies that are currently available. 
+The BadUSB threads might be undetectable by antivirus programs, but fortunately, the community has already developed numerous effective defense strategies that can protect us against these types of attacks. I tested the implemented device against two programs: USBGuard and Kaspersky Endpoint Security. Both performed well and successfully suppressed the attack. I also discussed a few other possible defense strategies that are currently available.
 
 Even though the core functionality is working pretty well, there are more features that can be added to this project. From supporting simple payloads written in the official DuckyScript to extending the server's API or getting the mass storage fully to work with external hardware (microSD). There are no limitations to what can and cannot be added. I wanted to make this project available to everyone, and so I decided to publish the source code publicly\footnote{\url{https://github.com/hungdojan/elastic-quacker}}. I hope that this project's development will not end with this thesis.
 
